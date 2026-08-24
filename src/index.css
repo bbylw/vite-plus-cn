@@ -1,0 +1,301 @@
+@import 'tailwindcss';
+
+/* 使用 class 策略的暗色模式 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display:
+    'Space Grotesk', ui-sans-serif, system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-sans:
+    'Manrope', ui-sans-serif, system-ui, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC',
+    sans-serif;
+  --font-mono:
+    'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+}
+
+/*
+ * 主题色 —— 极客黑曜石/珍珠白双色系，单一极光 Teal 信号色。
+ */
+:root {
+  color-scheme: light;
+  --bg: #f8faf9;
+  --bg-elev: #ffffff;
+  --bg-elev-2: #f0f4f2;
+  --fg: #0f171a;
+  --fg-muted: #536267;
+  --edge: #e2e8e5;
+  --edge-strong: #cbd5d0;
+  --accent: #0d9488;
+  --accent-strong: #0f766e;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(13, 148, 136, 0.08);
+  --accent-glow: rgba(13, 148, 136, 0.25);
+  --code-bg: #090d10;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #07090a;
+  --bg-elev: #0e1214;
+  --bg-elev-2: #14191c;
+  --fg: #eef3f5;
+  --fg-muted: #8b999e;
+  --edge: #1a2226;
+  --edge-strong: #27343b;
+  --accent: #2dd4bf;
+  --accent-strong: #5eead4;
+  --accent-ink: #042f2e;
+  --accent-soft: rgba(45, 212, 191, 0.1);
+  --accent-glow: rgba(45, 212, 191, 0.3);
+  --code-bg: #080c0e;
+  --glass-bg: rgba(7, 9, 10, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-bg-elev-2: var(--bg-elev-2);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-glow: var(--accent-glow);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  color: var(--fg);
+  min-height: 100dvh;
+  background-image:
+    radial-gradient(55% 45% at 15% -5%, rgba(45, 212, 191, 0.08), transparent 75%),
+    radial-gradient(50% 40% at 85% 10%, rgba(45, 212, 191, 0.06), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* 科技感点阵背景 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(circle, var(--edge) 1.2px, transparent 1.2px);
+  background-size: 28px 28px;
+  opacity: 0.45;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 80%);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+/* 全局可见焦点环 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* 精致细滚动条 */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--edge-strong);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
+  background-clip: padding-box;
+}
+
+/* 滚动揭示动画 */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* 卡片悬浮升起与边缘高光 */
+.hover-lift {
+  position: relative;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s ease,
+    box-shadow 0.28s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  border-color: var(--edge-strong);
+  box-shadow:
+    0 12px 30px -10px rgba(0, 0, 0, 0.1),
+    0 0 0 1px var(--edge-strong);
+}
+.dark .hover-lift:hover {
+  box-shadow:
+    0 20px 45px -15px rgba(0, 0, 0, 0.6),
+    0 0 20px -5px var(--accent-soft),
+    0 0 0 1px var(--edge-strong);
+}
+
+/* 磁吸按钮按压反馈 */
+.press {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* Spotlight 鼠标光晕卡片 */
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-elev);
+}
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    var(--accent),
+    transparent 40%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+/* Glassmorphic 玻璃质感面板 */
+.glass-panel {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+/* 无障碍：尊重减少动态 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* 代码高亮（基于 github-dark / modern neon） */
+.hljs {
+  background: transparent !important;
+  color: #e6edf3 !important;
+}
+.hljs-comment,
+.hljs-quote {
+  color: #768390 !important;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #2dd4bf !important;
+  font-weight: 500;
+}
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #f6c177 !important;
+}
+.hljs-string,
+.hljs-doctag {
+  color: #a6da95 !important;
+}
+.hljs-title,
+.hljs-section,
+.hljs-selector-id,
+.hljs-built_in,
+.hljs-type,
+.hljs-title.class_,
+.hljs-title.function_ {
+  color: #7dcfff !important;
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-name {
+  color: #eed49f !important;
+}
+.hljs-symbol,
+.hljs-bullet,
+.hljs-meta,
+.hljs-link {
+  color: #c6a0f6 !important;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 700;
+}
+.hljs-addition {
+  color: #a6da95;
+  background: rgba(166, 218, 149, 0.12);
+}
+.hljs-deletion {
+  color: #ed8796;
+  background: rgba(237, 135, 150, 0.12);
+}
