@@ -1,9 +1,9 @@
 <p align="center">
   <a href="https://viteplus.dev" target="_blank" rel="noopener noreferrer">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/voidzero-dev/vite-plus/main/logo-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/voidzero-dev/vite-plus/main/logo.svg">
-      <img alt="Vite+" src="https://raw.githubusercontent.com/voidzero-dev/vite-plus/main/logo.svg" height="60">
+      <source media="(prefers-color-scheme: dark)" srcset="./public/logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="./public/logo.svg">
+      <img alt="Vite+" src="./public/logo.svg" height="60">
     </picture>
   </a>
 </p>
