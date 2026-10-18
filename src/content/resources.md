@@ -6,9 +6,12 @@ Vite+ 完全开源（MIT 协议）。这里汇总了官方资源、社区入口�
 
 - **官网**：[viteplus.dev](https://viteplus.dev)
 - **GitHub 仓库**：[voidzero-dev/vite-plus](https://github.com/voidzero-dev/vite-plus)
+- **发布记录**：[GitHub Releases](https://github.com/voidzero-dev/vite-plus/releases)
+- **1.0 发布公告**：[Announcing Vite+ 1.0](https://voidzero.dev/posts/announcing-vite-plus-1-0)
 - **开源许可证**：MIT
-- **Discord 社区**：[加入讨论](https://discord.gg/cAnsqHh5PX)
-- **Vite+ 介绍博客**：[Announcing Vite+ Alpha](https://voidzero.dev/posts/announcing-vite-plus-alpha)
+- **Discord 社区**：[加入讨论](https://discord.gg/cC6TEVFKSx)
+- **X（Twitter）**：[@voidzerodev](https://x.com/voidzerodev)
+- **Bluesky**：[@voidzero.dev](https://bsky.app/profile/voidzero.dev)
 
 ## 核心组件
 
@@ -31,5 +34,9 @@ Vite+ 由以下开源项目构成：
 ## 支持与反馈
 
 - 遇到问题？先在 [GitHub Issues](https://github.com/voidzero-dev/vite-plus/issues) 中搜索。
-- 需要帮助？在 [Discord](https://discord.gg/cAnsqHh5PX) 中提问。
-- 使用 [`vp implode`](/guide/upgrade) 前，请先分享你的反馈。
+- 需要帮助？在 [Discord](https://discord.gg/cC6TEVFKSx) 中提问。
+- 使用 [`vp implode`](/guide/implode) 前，请先分享你的反馈。
+
+## 团队
+
+Vite+ 由 [VoidZero](https://voidzero.dev) 与 Vite 生态的贡献者共同维护。你可以在[上游团队页面](https://viteplus.dev/team)了解核心成员。

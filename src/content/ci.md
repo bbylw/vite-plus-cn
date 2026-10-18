@@ -1,57 +1,155 @@
 # CI / 持续集成
 
-Vite+ 开箱即用地支持 CI。在 GitHub Actions 中，使用官方 [setup-vp](https://github.com/voidzero-dev/setup-vp) Action 安装 Vite+ 即可。
+你可以使用 `voidzero-dev/setup-vp` 在 CI 环境中使用 Vite+。
+
+## 概览
+
+[`voidzero-dev/setup-vp`](https://github.com/voidzero-dev/setup-vp) 为 GitHub Actions、GitLab CI/CD 和 Azure Pipelines 提供集成。这三者都会安装 Vite+，并可安装项目依赖。GitHub Action 和 Azure Pipelines 模板还可以自动设置 Node.js 并缓存包管理器数据，而 GitLab CI/CD 模板使用作业提供的 Node.js 运行时和缓存配置。
+
+## setup-vp 版本管理
+
+将每个示例中的 `<setup-vp-version>` 设置为 [`setup-vp` 发布页](https://github.com/voidzero-dev/setup-vp/releases)中的确切版本。你也可以使用提交 SHA。不要使用 `v1` 标签。`v1` 标签不再接收更新。
+
+运行 `vp migrate` 可将 GitHub Actions 工作流和 `.github` 下的复合操作中精确的 `voidzero-dev/setup-vp@v1` 引用替换为你的 Vite+ 版本已知的最新确切发行版。现有的确切版本和提交 SHA 保持不变。
 
 ## GitHub Actions
 
-```yaml
+GitHub Action 会设置 Vite+、所需的 Node.js 版本和包管理器。这意味着你通常不需要在工作流中单独执行 `setup-node`、包管理器设置、依赖安装或手动依赖缓存步骤。
+
+```yaml [.github/workflows/ci.yml]
 - uses: voidzero-dev/setup-vp@<setup-vp-version>
   with:
-    node-version: '22'
+    node-version: '24'
     cache: true
+- run: vp check
+- run: vp test
+- run: vp build
 ```
 
-把 `<setup-vp-version>` 替换为 [setup-vp 发布页](https://github.com/voidzero-dev/setup-vp/releases) 中的确切实例版本（或 commit SHA）。**不要使用 `v1` 标签**，它已不再更新。
+`setup-vp` 默认运行 `vp install`。如果你设置 `run-install: false`，请确保在运行其他命令之前添加 `vp install` 步骤。使用 `cache: true` 时，`setup-vp` 会为你自动处理依赖缓存。
 
-一个完整的工作流示例：
+> [!TIP]
+> `setup-vp` 会缓存包管理器数据。要在 CI 运行之间复用 Vite 任务结果，请添加单独的 [Vite 任务的 GitHub Actions 缓存](/guide/github-actions-cache)。
 
-```yaml
-name: CI
+## GitLab CI/CD
 
-on:
-  push:
-    branches: [main]
-  pull_request:
+在你的 GitLab CI/CD 配置中使用可复用的 `setup-vp` 远程模板。将远程 URL 和 `setup-ref` 设置为相同的发行版标签或提交 SHA：
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: voidzero-dev/setup-vp@<setup-vp-version>
-        with:
-          node-version: '22'
-          cache: true
-      - run: vp install
-      - run: vp check
-      - run: vp test
-      - run: vp build
+```yaml [.gitlab-ci.yml]
+include:
+  - remote: 'https://raw.githubusercontent.com/voidzero-dev/setup-vp/<setup-vp-version>/gitlab/setup-vp.yml'
+    inputs:
+      setup-ref: '<setup-vp-version>'
+
+test:
+  extends: .setup-vp
+  image: node:24
+  script:
+    - vp check
+    - vp test
+    - vp build
 ```
+
+GitLab CI/CD 集成与 GitHub Action 有几处不同：
+
+- 模板不会安装 Node.js。请使用 Node.js 镜像（如上所示），或以其他方式在作业中提供 Node.js。
+- 使用作业的 GitLab [`cache`](https://docs.gitlab.com/ci/yaml/#cache) 关键字配置依赖缓存。
+- 使用带 Bash 以及 `curl` 或 `wget` 的类 Unix 运行器环境。
+
+有关高级配置和完整的输入参考，请参阅 [`setup-vp` GitLab CI/CD 文档](https://github.com/voidzero-dev/setup-vp#gitlab-cicd)。
+
+## Azure Pipelines
+
+在你的 Azure Pipelines 配置中使用可复用的 `setup-vp` 步骤模板。创建一个名为 `github` 的 GitHub 服务连接，然后从 `setup-vp` 仓库引用模板：
+
+```yaml [azure-pipelines.yml]
+resources:
+  repositories:
+    - repository: setupVp
+      type: github
+      endpoint: github
+      name: voidzero-dev/setup-vp
+      ref: refs/tags/<setup-vp-version>
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+  - template: azure/setup-vp.yml@setupVp
+    parameters:
+      setupRef: '<setup-vp-version>'
+      nodeVersion: 24.x
+      cache: true
+      runInstall: true
+  - script: vp check
+  - script: vp test
+  - script: vp build
+```
+
+将 `ref` 和 `setupRef` 固定到相同的标签或提交 SHA，以实现严格的可复现性。
+
+Azure Pipelines 模板支持 Microsoft 托管的 Linux、macOS 和 Windows 代理。它使用 Azure 原生的 `UseNode@1` 和 `Cache@2` 任务来设置 Node.js 并缓存包管理器数据。
+
+有关高级配置和完整的参数参考，请参阅 [`setup-vp` Azure Pipelines 文档](https://github.com/voidzero-dev/setup-vp#azure-pipelines)。
 
 ## 自动版本更新
 
-配置 [Dependabot](https://docs.github.com/code-security/dependabot/working-with-dependabot/keeping-your-dependencies-updated-automatically) 或 [Renovate](https://docs.renovatebot.com/) 可以自动更新 Vite+ 及其依赖。把 `setup-vp` 的版本更新纳入这些工具即可。
+Dependabot 和 Renovate 可以更新 GitHub Actions 工作流中的确切版本。
 
-## 无交互运行
+要使用 [Dependabot 版本更新](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuring-dependabot-version-updates)，请将 `github-actions` 条目添加到 `.github/dependabot.yml`：
 
-在 CI 中，`vp create` 可以通过 `--no-interactive` 运行；需要批准依赖构建脚本时使用 `--approve-builds`，从而在非交互环境下产出可直接使用的项目。
+```yaml [.github/dependabot.yml]
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+```
 
-## 环境变量
+Dependabot 每周检查 `.github/workflows` 中的 `uses:` 条目。
 
-- `VP_NODE_DIST_MIRROR` —— 使用自定义 Node.js 分发镜像
-- `VP_NODE_SKIP_SIGNATURE_VERIFY` —— 临时跳过 PGP 签名校验（仍会校验 SHA-256）
-- `VP_HOME` —— 把所有类别放在一个自定义根目录下
+[Renovate 的 GitHub Actions 管理器](https://docs.renovatebot.com/modules/manager/github-actions/)默认检测 `uses:` 条目。你不需要为 `setup-vp` 配置包规则。
 
-## 缓存
+当你使用提交 SHA 时，请在注释中添加确切的发行版标签。Renovate 会使用该注释查找更新：
 
-`vp cache clean` 用于清理任务缓存；设置 `cache: true` 让 Action 自动缓存依赖，加速后续构建。
+```yaml
+- uses: voidzero-dev/setup-vp@<commit-sha> # <setup-vp-version>
+```
+
+这些设置仅适用于 GitHub Actions 工作流。对于 GitLab CI/CD 和 Azure Pipelines，请同时更新两个版本值。
+
+## 简化现有工作流
+
+如果你正在迁移现有的 GitHub Actions 工作流，通常可以用单个 `setup-vp` 步骤替换大块的 Node、包管理器和缓存设置。
+
+#### 之前：
+
+```yaml [.github/workflows/ci.yml]
+- uses: pnpm/action-setup@v6
+  with:
+    version: 11
+
+- uses: actions/setup-node@v6
+  with:
+    node-version: '24'
+    cache: pnpm
+
+- run: pnpm ci && pnpm dev:setup
+- run: pnpm check
+- run: pnpm test
+```
+
+#### 之后：
+
+```yaml [.github/workflows/ci.yml]
+- uses: voidzero-dev/setup-vp@<setup-vp-version>
+  with:
+    node-version: '24'
+    cache: true
+
+- run: vp run dev:setup
+- run: vp check
+- run: vp test
+```

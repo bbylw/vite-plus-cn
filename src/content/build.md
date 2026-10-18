@@ -1,38 +1,39 @@
 # 构建
 
-`vp build` 使用 **Vite + Rolldown** 为生产环境构建应用。
+`vp build` 为生产环境构建 Vite 应用。
+
+## 概述
+
+`vp build` 通过 Vite+ 运行标准的 Vite 生产构建。由于它直接基于 Vite，构建流水线与配置模型都与 Vite 相同。有关 Vite 生产构建工作原理的更多信息，请参阅 [Vite 指南](https://vite.dev/guide/build)。请注意，Vite+ 使用 Vite 8 与 [Rolldown](https://rolldown.rs/) 进行构建。
+
+> [!NOTE]
+> `vp build` 始终运行内置的 Vite 生产构建。如果你的项目在 `package.json` 中也有 `build` 脚本，想改为运行该脚本时请使用 `vp run build`。参见[内置命令与脚本](/guide/run)。
 
 ## 用法
 
 ```bash
-vp build                      # 生产构建
-vp build --watch              # 监听模式，模块变化时重建
-vp build --sourcemap          # 输出 source map
+vp build
+vp build --watch
+vp build --sourcemap
 ```
 
-构建配置与标准 Vite 一致，可直接利用 `vite.config.ts` 中的所有 Vite 选项（包括插件与环境变量）。
+## 配置
 
-## 常用选项
+在 `vite.config.ts` 中使用标准的 Vite 配置。完整的配置参考请参阅 [Vite 配置文档](https://vite.dev/config/)。
 
-| 选项                           | 说明                                                             |
-| ------------------------------ | ---------------------------------------------------------------- |
-| `--target <target>`            | 编译目标（默认 `baseline-widely-available`）                     |
-| `--outDir <dir>`               | 输出目录（默认 `dist`）                                          |
-| `--assetsInlineLimit <number>` | 静态资源 base64 内联阈值（默认 4096）                            |
-| `--ssr [entry]`                | 为服务端渲染构建指定入口                                         |
-| `--sourcemap [output]`         | 输出 source map                                                  |
-| `--minify [minifier]`          | 启用/停用压缩，或指定 `oxc` / `terser` / `esbuild`（默认 `oxc`） |
-| `--manifest [name]`            | 输出构建清单 JSON                                                |
-| `-w, --watch`                  | 模块变更时重建                                                   |
-| `--emptyOutDir`                | 输出目录在 root 之外时强制清空                                   |
+它可用于：
 
-## 预览生产构建
+- [插件](https://vite.dev/guide/using-plugins)
+- [别名](https://vite.dev/config/shared-options#resolve-alias)
+- [`build`](https://vite.dev/config/build-options)
+- [`preview`](https://vite.dev/config/preview-options)
+- [环境模式](https://vite.dev/guide/env-and-mode)
+
+## 预览
+
+在 `vp build` 之后，使用 `vp preview` 在本地提供生产构建产物。
 
 ```bash
-vp preview                    # 本地预览
-vp preview --port 4173
+vp build
+vp preview
 ```
-
-## 基于 Rolldown 的打包
-
-`vp build` 使用 [Rolldown](https://rolldown.rs/) —— 一套用 Rust 编写的次世代打包器，与 Vite 架构深度集成，带来显著的速度与更小的体积。

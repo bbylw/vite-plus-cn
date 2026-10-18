@@ -31,13 +31,17 @@ function CalloutBlock({ children }: { children: React.ReactNode }) {
   if (match) {
     const type = match[1].toUpperCase();
 
-    // 移除提示标记
+    // 移除提示标记：react-markdown 会在块级元素间插入空白文本节点，需递归找到首个文本
+    const state = { cleaned: false };
     const renderCleanChildren = (node: any): any => {
       if (typeof node === 'string') {
-        return node.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+        if (state.cleaned) return node;
+        const next = node.replace(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
+        if (next !== node) state.cleaned = true;
+        return next;
       }
       if (Array.isArray(node)) {
-        return node.map((child, idx) => (idx === 0 ? renderCleanChildren(child) : child));
+        return node.map((child) => renderCleanChildren(child));
       }
       if (node?.props?.children) {
         return {

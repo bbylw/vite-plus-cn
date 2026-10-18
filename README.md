@@ -16,7 +16,7 @@ _运行时与包管理、创建、开发、检查、测试、构建、打包以�
 
 Vite+ 是本地 Web 开发的统一入口。它将 [Vite](https://vite.dev/)、[Vitest](https://vitest.dev/)、[Oxlint](https://oxc.rs/docs/guide/usage/linter.html)、[Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)、[Rolldown](https://rolldown.rs/)、[tsdown](https://tsdown.dev/) 以及 [Vite Task](https://github.com/voidzero-dev/vite-task) 整合进一套零配置的工具链，同时还能管理运行时与包管理器的工作流：
 
-- **`vp env`：** 全局及按项目管理 Node.js
+- **`vp env`：** 全局及按项目管理 Node.js 与包管理器
 - **`vp install`：** 自动识别包管理器并安装依赖
 - **`vp dev`：** 运行 Vite 快速的原生 ESM 开发服务器，支持即时 HMR
 - **`vp check`：** 一条命令同时完成格式化、lint 与类型检查
@@ -80,7 +80,9 @@ export default defineConfig({
     tasks: {
       'generate:icons': {
         command: 'node scripts/generate-icons.js',
-        envs: ['ICON_THEME'],
+        cache: {
+          env: ['ICON_THEME'],
+        },
       },
     },
   },
@@ -106,7 +108,7 @@ export default defineConfig({
 - **hooks** - 管理 Git 钩子分发器
 - **staged** - 对暂存文件运行 lint
 - **install** (`i`) - 安装依赖
-- **env** - 管理 Node.js 版本
+- **env** - 管理 Node.js 与包管理器
 
 #### 开发
 
@@ -199,12 +201,12 @@ vp migrate
 vp install -D vite-plus
 ```
 
-添加包管理器覆盖规则，使其他包使用 Vite+ 的版本。将 `vite` 别名为 `@voidzero-dev/vite-plus-core`，并将 `vitest` 固定为 `vp toolchain vitest` 输出的版本。这样项目与 `vp test` 就会使用同一份 Vitest 副本。若不固定版本，某个依赖或 workspace 包可能会安装不同版本的 Vitest，而这两个版本可能使用相互独立的 mock、`expect` 函数以及 runner 状态：
+添加包管理器覆盖规则，使其他包使用 Vite+ 的版本。将 `vite` 别名为 `@voidzero-dev/vite-plus-core`，并把 `<vite-plus-version>` 设为已安装的 `vite-plus` 版本。将 `vitest` 固定为 `<vitest-version>`，使用 `vp toolchain vitest` 显示的随附版本。这样项目与 `vp test` 就会使用同一份 Vitest 副本。若不固定版本，某个依赖或 workspace 包可能会安装不同版本的 Vitest，而这两个版本可能使用相互独立的 mock、`expect` 函数以及 runner 状态：
 
 ```json
 "overrides": {
-  "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-  "vitest": "4.1.11"
+  "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+  "vitest": "<vitest-version>"
 }
 ```
 
@@ -212,16 +214,16 @@ vp install -D vite-plus
 
 ```yaml
 overrides:
-  vite: npm:@voidzero-dev/vite-plus-core@latest
-  vitest: 4.1.11
+  vite@*: npm:@voidzero-dev/vite-plus-core@<vite-plus-version> # 与已安装的 vite-plus 版本一致
+  vitest@*: <vitest-version> # 与 vp toolchain vitest 显示的版本一致
 ```
 
 或者，如果你使用的是 Yarn：
 
 ```json
 "resolutions": {
-  "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-  "vitest": "4.1.11"
+  "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+  "vitest": "<vitest-version>"
 }
 ```
 

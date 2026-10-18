@@ -1,0 +1,15 @@
+# staged 配置
+
+`vp staged` 会从 `vite.config.ts` 的 `staged` 配置块读取暂存文件规则。请参阅[提交钩子指南](/guide/commit-hooks)。
+
+## 示例
+
+```ts [vite.config.ts]
+import { defineConfig } from 'vite-plus';
+
+export default defineConfig({
+  staged: {
+    '*': 'vp check --fix',
+  },
+});
+```

@@ -22,7 +22,7 @@ const features = [
   {
     icon: BoxIcon,
     title: '统一工具链入口',
-    desc: '单个 vp 统领开发服务器、代码检查、格式化、单元测试、打包与 Monorepo 缓存。',
+    desc: '全局 vp 与项目本地 vite-plus 双 CLI，统领开发、检查、测试、构建与 Monorepo 缓存。',
     tag: 'All-in-One',
   },
   {
@@ -45,9 +45,9 @@ const features = [
   },
   {
     icon: MonitorIcon,
-    title: '智能多包管理',
-    desc: '自动侦测并包装 Bun、pnpm、npm 或 Yarn，统一项目执行环境无缝协同。',
-    tag: 'Package Manager',
+    title: '运行时与包管理',
+    desc: '统一管理 Node.js 与多包版本，自动侦测并包装 Bun、pnpm、npm 或 Yarn。',
+    tag: 'Runtime & PM',
   },
   {
     icon: TargetIcon,
@@ -73,10 +73,10 @@ const terminalTabs = [
   {
     id: 'install',
     label: '1. 安装',
-    cmd: 'bun add -d vite-plus',
+    cmd: 'curl -fsSL https://vite.plus | bash',
     outputs: [
-      { text: '+ vite-plus@0.3.0', color: 'text-emerald-400' },
-      { text: '✓ 1 package installed [42ms]', color: 'text-slate-400' },
+      { text: '✓ 安装全局 vp 1.3.0', color: 'text-emerald-400' },
+      { text: '✓ Node.js 与包管理器受管模式已启用', color: 'text-slate-400' },
     ],
   },
   {
@@ -94,7 +94,7 @@ const terminalTabs = [
     label: '3. 开发',
     cmd: 'vp dev',
     outputs: [
-      { text: '  VITE+ v0.3.0  ready in 18 ms', color: 'text-emerald-400 font-bold' },
+      { text: '  VITE+ v1.3.0  ready in 18 ms', color: 'text-emerald-400 font-bold' },
       { text: '  ➜  Local:   http://localhost:5173/', color: 'text-cyan-300' },
       { text: '  ➜  Network: use --host to expose', color: 'text-slate-400' },
       { text: '  ➜  press h + enter to show help', color: 'text-slate-500' },
@@ -365,7 +365,7 @@ function BenchmarkSection() {
 
 // 安装方式一键切换
 function InstallSection() {
-  const [manager, setManager] = useState<'bun' | 'pnpm' | 'npm' | 'yarn' | 'curl' | 'ps'>('bun');
+  const [manager, setManager] = useState<'curl' | 'ps' | 'bun' | 'pnpm' | 'npm' | 'yarn'>('curl');
   const [copied, setCopied] = useState(false);
 
   const installCommands = {
@@ -409,12 +409,13 @@ function InstallSection() {
                 一键接入，升级现有项目
               </h2>
               <p className="mt-3 text-sm sm:text-base leading-relaxed text-fg-muted max-w-xl">
-                无论是通过包管理器引入工程本地，或是全局安装独立 CLI，Vite+ 都能瞬间完成初始化。
+                安装全局 CLI 跨项目管理运行时，或把 vite-plus
+                引入项目锁定工具链版本。两种方式都能立即开始。
               </p>
 
               {/* 标签切换 */}
               <div className="mt-6 flex flex-wrap gap-2">
-                {(['bun', 'pnpm', 'npm', 'yarn', 'curl', 'ps'] as const).map((m) => (
+                {(['curl', 'ps', 'bun', 'pnpm', 'npm', 'yarn'] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
@@ -471,7 +472,7 @@ export function Home() {
             <Reveal>
               <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent-soft px-3.5 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-accent shadow-xs">
                 <span className="h-2 w-2 rounded-full bg-accent animate-ping" />
-                Vite+ 统一 Web 工具链 · 中文站点
+                Vite+ 统一 Web 工具链 · v1.3 中文站点
               </div>
             </Reveal>
 
@@ -487,8 +488,8 @@ export function Home() {
 
             <Reveal delay={160}>
               <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-fg-muted">
-                从包管理、模板创建、HMR 极速开发，到 Lint、代码格式化、Vitest 测试与 Rolldown 构建
-                —— 全部凝聚在一个依赖中。
+                从 Node.js 与包管理、模板创建、HMR 极速开发，到 Lint、代码格式化、Vitest 测试与
+                Rolldown 构建 —— 全部凝聚在一个依赖中。
               </p>
             </Reveal>
 
