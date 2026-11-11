@@ -2,7 +2,7 @@
 
 `vp test` 使用 [Vitest](https://vitest.dev) 运行测试。
 
-Vite+ 依赖 Vitest `5.0.5`，它要求 Node `^22.18.0 || ^24.11.0 || >=26.0.0`。对于已有项目，请在更新依赖之前先按照[升级到 Vitest 5](/guide/vitest-v5)操作。
+Vite+ 依赖 Vitest `5.1.0`，它要求 Node `^22.18.0 || ^24.11.0 || >=26.0.0`。对于已有项目，请在更新依赖之前先按照[升级到 Vitest 5](/guide/vitest-v5)操作。
 
 `vp test` 会先从 `vite-plus` 的依赖中解析 Vitest，然后再从你的项目中解析。
 

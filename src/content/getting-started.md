@@ -95,9 +95,9 @@ Vite+ 覆盖完整的前端开发周期，从启动项目开始，贯穿开发�
 
 - [`vp create`](/guide/create) 创建新的应用、包与 monorepo。
 - [`vp migrate`](/guide/migrate) 将现有项目迁移到 Vite+。
-- [`vp install`](/guide/package-management) 使用正确的包管理器安装依赖。
-- [`vp add`](/guide/package-management)、[`vp remove`](/guide/package-management)、[`vp update`](/guide/package-management)、[`vp dedupe`](/guide/package-management)、[`vp outdated`](/guide/package-management)、[`vp list`](/guide/package-management)、[`vp why`](/guide/package-management) 与 [`vp info`](/guide/package-management) 覆盖包管理器工作流的其余环节。
-- [`vp link`](/guide/package-management)、[`vp unlink`](/guide/package-management)、[`vp rebuild`](/guide/package-management) 与 [`vp pm <command>`](/guide/package-management) 提供更底层的包管理器操作。
+- [`vp install`](/guide/package-management/install) 使用正确的包管理器安装依赖。
+- [`vp add`](/guide/package-management/add)、[`vp remove`](/guide/package-management/remove)、[`vp update`](/guide/package-management/update)、[`vp dedupe`](/guide/package-management/dedupe)、[`vp outdated`](/guide/package-management/outdated)、[`vp list`](/guide/package-management/list)、[`vp why`](/guide/package-management/why) 与 [`vp info`](/guide/package-management/info) 覆盖包管理器工作流的其余环节。
+- [`vp link`](/guide/package-management/link)、[`vp unlink`](/guide/package-management/unlink)、[`vp rebuild`](/guide/package-management/rebuild) 与 [`vp pm <command>`](/guide/package-management) 提供更底层的包管理器操作。
 
 ### 项目工具链
 
@@ -110,7 +110,7 @@ Vite+ 覆盖完整的前端开发周期，从启动项目开始，贯穿开发�
 - [`vp toolchain`](/guide/upgrade) 显示当前项目的工具链；使用 `--global` 可改为检查全局安装。
 - [`vp run`](/guide/run) 跨工作区运行任务，并带有缓存。
 - [`vp cache clean`](/guide/cache) 清理任务缓存条目。
-- [`vp exec`](/guide/vpx) 运行本地项目二进制文件，[`vp dlx`](/guide/vpx) 与 [`vpx`](/guide/vpx) 下载并运行包二进制文件。
+- [`vp exec`](/guide/vpx) 运行本地项目二进制文件，[`vp dlx`](/guide/package-management/dlx) 与 [`vpx`](/guide/vpx) 下载并运行包二进制文件。
 - [`vp config`](/guide/commit-hooks) 安装 Git 提交钩子分发器并配置代理集成。
 - [`vp hooks`](/guide/commit-hooks) 管理 Git 提交钩子分发器，[`vp staged`](/guide/commit-hooks) 对暂存文件运行检查。
 - [Monorepo 指南](/guide/monorepo)介绍多包项目的结构与命令。

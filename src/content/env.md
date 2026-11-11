@@ -41,6 +41,8 @@ vp env pin 22.0.0 pnpm@10.18.0  # 同样是两个组件
 
 如果没有任何目录声明版本，Vite+ 使用全局默认值（`vp env default`），然后使用最新的 LTS。
 
+`lts` 别名选择最新的 LTS 发行版。`latest` 别名选择最新的稳定发行版（无论是否为 LTS），并跳过 `27.0.0-alpha.0.0.0` 之类的预发布版本。要使用预发布版本，请指定其确切版本。
+
 `devEngines.runtime` 的优先级高于 `engines.node`，因为它声明的是开发环境需求，而 `engines.node` 是面向使用者的支持范围。当声明的来源冲突时，`vp env doctor` 会发出警告。
 
 > [!TIP]
@@ -182,20 +184,25 @@ vp-use --unset
 全局 CLI 支持在 Bash、Zsh、Fish、Nushell 和 PowerShell 中使用 Tab 补全。运行 `vp env setup` 并按它打印的 shell 设置说明启用。按 Tab 补全命令，或在 `vp run` 和 `vpr` 之后补全项目任务名称。
 
 - **Zsh**：如果你的 shell 尚未初始化补全，请在加载设置脚本之前运行 `autoload -Uz compinit; compinit`。
-- **Nushell**：补全需要 `PATH` 中有 `fish`。
+- **Nushell**：补全需要 `PATH` 中有 `fish`。请使用 Nushell 0.112.1 或更高版本；参见[全局 CLI](/guide/global-cli) 中的 Nushell 版本说明。
 
 ### 管理
 
 - `vp env default` 显示全局 Node.js 默认版本以及每个已配置的包管理器版本。裸版本设置 Node.js；带限定符的规格（如 `pnpm@10.18.0`）设置该包管理器的 shim 默认值，而不会替换 Bun、Yarn 或 npm 的默认值。`--unset` 清除所有默认值，除非指定了范围。
 - `vp env default <lts|latest>` 和包管理器 dist-tag（如 `pnpm@latest` 或 `pnpm@latest-10`）会在每次使用时重新解析，因此默认值会跟随标签变化，包括 `latest` 的新主版本。其他版本和范围（如 `24` 或 `pnpm@10`）在设置时会解析为确切版本。
-- `vp env pin` 显示或写入项目固定版本。现有的 `.node-version` 和顶层 `packageManager` 字段会继续更新以保持兼容性。当现有 `.nvmrc` 是当前目录中生效的 Node 来源时，它会被更新；其注释和其他非版本内容会保留。否则 Vite+ 会写入匹配的 `devEngines` 条目。使用 `--target node-version`、`--target nvmrc`、`--target dev-engines` 或 `--target package-manager` 显式选择。在子目录中固定不会修改继承的 `.nvmrc`。
-- `vp env unpin` 默认移除两个生效的固定版本；追加选择器可只移除一个。优先级较低的声明不会被删除。
+- `vp env pin` 显示或写入项目固定版本。Node.js 固定使用当前目录。包管理器固定使用工作区根目录的 `package.json`，不在工作区中时使用当前项目的 `package.json`。同时固定两个组件可能会更新两个不同的文件。
+
+  现有的 `.node-version` 和顶层 `packageManager` 字段会继续更新以保持兼容性。当现有 `.nvmrc` 是当前目录中生效的 Node 来源时，它会被更新，其注释和其他非版本内容会保留。否则 Vite+ 会写入匹配的 `devEngines` 条目。
+
+  使用 `--target node-version`、`--target nvmrc`、`--target dev-engines` 或 `--target package-manager` 显式选择固定来源。这不会改变项目目录。包管理器的输出会显示相对于当前工作目录的文件路径以及被更新的字段，或在覆盖现有内容前的确认提示中显示目标。在子目录中固定不会修改继承的 `.nvmrc`。
+
+- `vp env unpin`（`vp env pin --unpin` 的别名）默认移除两个生效的固定版本。追加选择器可只移除一个。Node.js 的移除使用当前目录。包管理器的移除使用工作区根目录的清单，不在工作区中时使用当前项目的清单。`--target` 在该范围内选择固定来源。输出会标明被移除的包管理器字段，或在未找到匹配固定版本时列出检查过的字段。优先级较低的声明不会被删除。
 - `vp env use` 激活完整的项目环境。显式规格会覆盖选定的组件；`--unset` 会清除两者，除非指定了范围。
 - `vp env install` 安装完整解析后的环境、选定的组件或显式规格。
 - `vp env uninstall` 移除由显式版本或选择器（如 `22` 或 `lts`）解析出的 Node.js 版本。包管理器需要带限定符的精确版本，例如 `pnpm@10.18.0`。
 - `vp env clean` 移除未使用的安装。使用 `clean node`、`clean pm` 或具体的包管理器。当前版本和配置的默认版本会保留。
 - `vp env exec` 在解析后的环境中运行命令。使用 `--node` 和 `--package-manager`；`--npm` 是 `--package-manager npm@…` 的别名。
-- `vp node` 使用解析后的 Node.js 运行时，并向子进程暴露选定的包管理器路径。
+- `vp node` 使用解析后的 Node.js 运行时，并向子进程暴露选定的包管理器路径。它按原样运行 Node.js，因此 TypeScript 文件只能获得 Node.js 的类型剥离；[`vpx <file>`](/guide/vpx) 在同一运行时上以完整的 TypeScript 支持运行它们。
 
 ### 检查
 

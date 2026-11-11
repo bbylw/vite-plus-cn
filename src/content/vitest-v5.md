@@ -1,6 +1,6 @@
 # 升级到 Vitest 5
 
-Vite+ 捆绑 Vitest `5.0.5`。CLI 与测试请使用 Node `^22.18.0 || ^24.11.0 || >=26.0.0`。
+Vite+ 捆绑 Vitest `5.1.0`。CLI 与测试请使用 Node `^22.18.0 || ^24.11.0 || >=26.0.0`。
 
 ## 迁移之前
 
@@ -126,7 +126,7 @@ test('parse', async ({ bench }) => {
 
 ## 入口与包
 
-断言与受支持的 runner API 请使用 `vite-plus/test`。覆盖率 provider 与 `@vitest/ui` 请保持捆绑 runner 的确切版本 `5.0.5`。项目使用 `@vitest/web-worker` 时，请保持其版本对齐。
+断言与受支持的 runner API 请使用 `vite-plus/test`。覆盖率 provider 与 `@vitest/ui` 请保持捆绑 runner 的确切版本 `5.1.0`。项目使用 `@vitest/web-worker` 时，请保持其版本对齐。
 
 | v4 导入                                  | v5 导入或操作                                          |
 | ---------------------------------------- | ------------------------------------------------------ |

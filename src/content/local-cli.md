@@ -97,6 +97,28 @@ overrides:
 }
 ```
 
+> [!WARNING]
+> **npm 项目中已有的直接依赖**
+>
+> 如果你的 npm 项目已在 `dependencies` 或 `devDependencies` 中列出 `vite`，请把该条目改为与 `overrides.vite` 相同的别名。npm 要求直接依赖与其 override 使用[相同的依赖规格](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/#overrides)，否则 `npm install` 会以 `EOVERRIDE` 失败。
+>
+> 例如，按如下方式更新现有的 `vite` 开发依赖，并保留清单中的其他依赖：
+>
+> ```json
+> {
+>   "devDependencies": {
+>     "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+>     "vite-plus": "<vite-plus-version>"
+>   },
+>   "overrides": {
+>     "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+>     "vitest": "<vitest-version>"
+>   }
+> }
+> ```
+>
+> 如果你还直接声明了 `vitest`，请把它的依赖条目设为 `overrides.vitest` 中的确切版本。完成这些修改后运行 `npm install`，更新锁文件与已安装的依赖。
+
 **为什么需要这些设置？**
 
 依赖与插件可能会直接导入 `vite` 或 `vitest`，即使你自己的代码是从 `vite-plus` 导入的。这些 overrides 会让它们的依赖与 Vite+ 使用的工具链保持一致：

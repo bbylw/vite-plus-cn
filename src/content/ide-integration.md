@@ -63,9 +63,7 @@ Vite+ 通过编辑器专用设置支持 VS Code、Zed 和 JetBrains IDE，`vp cr
       "initialization_options": {
         "settings": {
           "run": "onType",
-          "fixKind": "safe_fix",
-          "typeAware": true,
-          "unusedDisableDirectives": "deny"
+          "fixKind": "safe_fix"
         }
       }
     },

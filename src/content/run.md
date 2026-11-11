@@ -5,6 +5,9 @@
 > [!TIP]
 > `vpr` 可作为 `vp run` 的独立简写使用。下面所有示例同时适用于 `vp run` 与 `vpr`。
 
+> [!NOTE]
+> Vite Task 会自行解析简单命令和 `&&` 链，而不是把它们交给 shell，因此它们在每个平台上的行为都一致。其他 shell 语法（例如管道或重定向）在不同平台上的行为可能不同。
+
 ## 概述
 
 对现有的 `package.json` 脚本使用 `vp run`：
@@ -238,7 +241,7 @@ vp run -w build
 
 ## 复合命令
 
-用 `&&` 连接的命令会被拆分为相互独立的子任务。启用[缓存](/guide/cache)时，每个子任务会分别缓存。这对 `vite.config.ts` 中的任务与 `package.json` 脚本都适用：
+用 `&&` 连接的命令会被拆分为相互独立的子任务，除非它们还使用了其他 shell 语法。启用[缓存](/guide/cache)时，每个子任务会分别缓存。这对 `vite.config.ts` 中的任务与 `package.json` 脚本都适用：
 
 ```json
 {
@@ -271,6 +274,23 @@ $ vp build ○ cache miss: 'index.html' modified, executing
 ---
 vp run: 1/2 cache hit (50%), 2/2 successful, 120ms saved.
 ```
+
+### 环境变量前缀
+
+`FOO=bar command` 之类的环境变量前缀在每个平台上都可用，无需 `cross-env` 等额外工具：
+
+```json
+{
+  "scripts": {
+    "build": "NODE_ENV=production node build.js"
+  }
+}
+```
+
+前缀只作用于它紧邻的那条命令。在 `FOO=1 a && b` 中，`FOO` 会为 `a` 设置，但不会为 `b` 设置。
+
+> [!WARNING]
+> 当命令还使用了其他 shell 语法时，前缀可能无法在每个平台上正常工作。
 
 ### 嵌套的 `vp run`
 
@@ -339,11 +359,33 @@ Task Details:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
+当任务未命中缓存时，摘要会列出导致未命中的每一处变化。使用 `-vv`（或 `--verbose --verbose`）还可以在 `Unchanged:` 下列出每次缓存运行未变化的输入，在 `Outputs:` 下列出缓存命中时恢复的文件。如果你预期未命中却命中了缓存，`-vv` 会显示你编辑的文件到底是不是输入。
+
 使用 `--last-details` 可以在不重新运行任务的情况下显示上一次运行的摘要：
 
 ```bash
 vp run --last-details
 ```
+
+## 干运行与 JSON 输出
+
+`--dry-run` 展示一次运行会做什么，但不实际运行任何内容。它会打印每条命令及其缓存状态，然后打印摘要。Vite Task 会像真实运行一样检查缓存，但不写入任何内容：
+
+```bash
+vp run --dry-run -r build
+```
+
+`--json` 打印 JSON 而非文本，供脚本与智能体使用：
+
+- `vp run --json` 不带任务或其他标志时，打印工作区中的每个包与任务，并解析每个任务的 `dependsOn`，不运行任何内容。参见[任务图 schema](https://github.com/voidzero-dev/vite-task/blob/cb1ea8d214b26a0f3ca2b2ef3b6bc471b18ffacb/crates/vt/schemas/task-graph.json)。
+- `vp run --dry-run --json build` 打印一次运行的计划：它会运行哪些任务、每个任务等待哪些任务、每一步的命令，以及每一步是否会命中缓存。带任务名时，`--json` 只能与 `--dry-run` 一起使用。参见[运行计划 schema](https://github.com/voidzero-dev/vite-task/blob/cb1ea8d214b26a0f3ca2b2ef3b6bc471b18ffacb/crates/vt/schemas/run-plan.json)。
+
+加上 `-v` 或 `-vv` 可查看更多细节：
+
+- 单独使用 `--dry-run` 时，只显示每个未命中背后找到的第一处变化。加上 `-v` 后，摘要会列出每一处变化。
+- `--dry-run --json` 加 `-vv` 会为每一步补充 `baseline.fingerprint` 与 `baseline.outputs`：其缓存运行记录的输入，以及命中时会恢复的输出。
+
+请把这些标志放在任务名之前。任务名之后的任何内容都会传给任务。
 
 ## 并发
 

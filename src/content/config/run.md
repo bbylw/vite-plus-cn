@@ -54,6 +54,9 @@ export default defineConfig({
 
 `cache: true` 同时启用任务缓存和脚本缓存，`cache: false` 则同时禁用两者。
 
+> [!WARNING]
+> 该选项只能在工作区根目录的 `vite.config.ts` 中设置。在包的配置中设置会导致错误。
+
 ## `run.tasks`
 
 - **类型：** `Record<string, Task | string | string[]>`
@@ -84,7 +87,10 @@ tasks: {
 
 - **类型：** `string | string[]`
 
-定义任务要运行的 shell 命令。字符串由 shell 解释，因此空格、引号、`&&`、管道和重定向都会像在命令行中书写一样生效。
+定义任务要运行的命令。
+
+> [!NOTE]
+> Vite Task 会自行解析简单命令和 `&&` 链，而不是把它们交给 shell，因此它们在每个平台上的行为都一致。其他 shell 语法（例如管道或重定向）在不同平台上的行为可能不同。
 
 ```ts [vite.config.ts]
 tasks: {
@@ -111,7 +117,7 @@ tasks: {
 
 在 `vite.config.ts` 中定义的每个任务都必须包含自己的 `command`。不能同时在 `vite.config.ts` 和 `package.json` 中定义同名任务。
 
-用 `&&` 连接（或作为数组提供）的命令会自动拆分为可独立缓存的子任务。参见[复合命令](/guide/run)。
+数组条目，以及不含其他 shell 语法的 `&&` 链，会自动拆分为可独立缓存的子任务。参见[复合命令](/guide/run)。
 
 ### `dependsOn`
 
@@ -159,7 +165,7 @@ tasks: {
 
 是否以及如何缓存该任务。当省略 `cache`、设为 `true` 或 `{}` 时，将使用默认设置启用缓存。
 
-使用对象，并通过 [`cache.env`](#cache-env)、[`cache.untrackedEnv`](#cache-untrackedenv)、[`cache.input`](#cache-input) 和 [`cache.output`](#cache-output) 配置任务的缓存方式：
+使用对象，并通过 [`cache.env`](#cacheenv)、[`cache.untrackedEnv`](#cacheuntrackedenv)、[`cache.input`](#cacheinput) 和 [`cache.output`](#cacheoutput) 配置任务的缓存方式：
 
 ```ts [vite.config.ts]
 tasks: {
@@ -229,7 +235,7 @@ tasks: {
 }
 ```
 
-`untrackedEnv` 接受与 [`env`](#cache-env) 相同的通配符和 `!` 排除模式。
+`untrackedEnv` 接受与 [`env`](#cacheenv) 相同的通配符和 `!` 排除模式。
 
 如果某个变量的值会影响任务结果，请不要将其放入 `untrackedEnv`。如果某个缓存上报工具通过[自动追踪](/guide/automatic-data-tracking)覆盖了该变量，请同时将其从 `env` 和 `untrackedEnv` 中省略。
 
@@ -255,11 +261,12 @@ Vite Task 会自动检测命令使用了哪些文件。详情以及何时需要�
 
 ```ts [vite.config.ts]
 tasks: {
-  build: {
-    command: 'vp build',
+  lint: {
+    command: 'vp lint',
     cache: {
       // 使用 `{ auto: true }` 启用自动指纹计算（默认）。
-      input: [{ auto: true }, '!**/*.tsbuildinfo', '!dist/**'],
+      // 避免 build 任务的 `dist` 目录影响此任务。
+      input: [{ auto: true }, '!dist/**'],
     },
   },
 }
@@ -337,14 +344,14 @@ tasks: {
 
 使用 `{ auto: true }` 可在添加显式 output glob 的同时保留自动写入追踪。
 
-当任务写入了不应从缓存恢复的文件时，这很有用。例如，排除 TypeScript 的 `.tsbuildinfo` 文件：
+当任务写入了不应从缓存恢复的文件（例如调试日志）时，这很有用：
 
 ```ts [vite.config.ts]
 tasks: {
-  typecheck: {
-    command: 'tsc --build',
+  build: {
+    command: 'node build.mjs',
     cache: {
-      output: [{ auto: true }, '!*.tsbuildinfo'],
+      output: [{ auto: true }, '!build.log'],
     },
   },
 }

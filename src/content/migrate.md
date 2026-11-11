@@ -4,7 +4,7 @@
 
 ## 概览
 
-该命令是把分散的 Vite、Vitest、Oxlint、Oxfmt、ESLint、Prettier、tsdown 和 tsup 配置整合到 Vite+ 的起点。
+该命令是把分散的 Vite、Vitest、Oxlint、Oxfmt、ESLint、Prettier、tsdown、tsup、tsx、oxnode 和 ts-node 配置整合到 Vite+ 的起点。
 
 当你希望把一个现有项目交由 Vite+ 的默认配置接管、而不是手动逐个接入每个工具时，可以使用它。
 
@@ -91,9 +91,9 @@ vp migrate my-app
 
 使用目标 Vite+ 1.0 版本（或其预览构建）的 CLI，并使用兼容性指南中受支持的 Node.js 运行时。全局安装是可选的：
 - 已全局安装 vp 时，按 https://viteplus.dev/guide/upgrade 选择目标版本，并检查 `vp toolchain --global`。运行 `vp help` 与 `vp help migrate`，然后在工作区根目录运行 `vp migrate --no-interactive`。
-- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.3.0 版本，使用 `pnpm dlx --package=vite-plus@1.3.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.3.0 vp migrate --no-interactive`。先运行带 `help migrate` 的同一命令（而不是 `migrate --no-interactive`）以阅读其帮助信息。这些命令会在不替换旧项目依赖的前提下拉取目标 CLI。
+- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.6.0 版本，使用 `pnpm dlx --package=vite-plus@1.6.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.6.0 vp migrate --no-interactive`。先运行带 `help migrate` 的同一命令（而不是 `migrate --no-interactive`）以阅读其帮助信息。这些命令会在不替换旧项目依赖的前提下拉取目标 CLI。
 
-把 1.3.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。
+把 1.6.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。
 
 不要使用旧项目的 node_modules/.bin/vp 运行迁移。monorepo 请从工作区根目录迁移，以保证共享清单、catalog、overrides 与锁文件保持一致。
 
@@ -132,21 +132,21 @@ Vite+ 1.0 包含 Vitest 5 中的破坏性变更。请同时阅读 [Vite+ 兼容�
 
 ### 不安装全局 CLI
 
-使用满足 `^22.18.0 || ^24.11.0 || >=26.0.0` 的现有 Node.js 运行时。通过包管理器运行目标迁移工具，而不要先把它加入项目。对于 `1.3.0` 版本：
+使用满足 `^22.18.0 || ^24.11.0 || >=26.0.0` 的现有 Node.js 运行时。通过包管理器运行目标迁移工具，而不要先把它加入项目。对于 `1.6.0` 版本：
 
 **pnpm**
 
 ```bash
-pnpm dlx --package=vite-plus@1.3.0 vp migrate --no-interactive
+pnpm dlx --package=vite-plus@1.6.0 vp migrate --no-interactive
 ```
 
 **npm**
 
 ```bash
-npx --package=vite-plus@1.3.0 vp migrate --no-interactive
+npx --package=vite-plus@1.6.0 vp migrate --no-interactive
 ```
 
-把 `1.3.0` 替换为目标版本。如需预览版，使用其 PR 中的版本，并在 `vp` 命令之前向 `pnpm` 或 `npx` 传入 `--registry=https://registry-bridge.viteplus.dev`。请始终在 `--package` 中写明显式版本，以确保运行的是目标迁移工具，而不是旧的本地 CLI。
+把 `1.6.0` 替换为目标版本。如需预览版，使用其 PR 中的版本，并在 `vp` 命令之前向 `pnpm` 或 `npx` 传入 `--registry=https://registry-bridge.viteplus.dev`。请始终在 `--package` 中写明显式版本，以确保运行的是目标迁移工具，而不是旧的本地 CLI。
 
 迁移完成后，使用更新后的本地 CLI 完成依赖安装并验证：
 
@@ -197,9 +197,9 @@ npm exec -- vp build
 使用目标 Vite+ 1.0 版本（或其预览构建）的 CLI。全局安装是可选的。使用 Vite+ 兼容性指南中受支持的 Node.js 运行时。
 
 - 已全局安装 vp 时，按 https://viteplus.dev/guide/upgrade 升级它，并检查 `vp toolchain --global`。运行 `vp help migrate`，然后在工作区根目录运行 `vp migrate --no-interactive`。
-- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.3.0 版本，运行 `pnpm dlx --package=vite-plus@1.3.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.3.0 vp migrate --no-interactive`。先阅读其帮助输出，这些命令不会先替换项目依赖。
+- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.6.0 版本，运行 `pnpm dlx --package=vite-plus@1.6.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.6.0 vp migrate --no-interactive`。先阅读其帮助输出，这些命令不会先替换项目依赖。
 
-把 1.3.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。不要使用旧项目的 node_modules/.bin/vp 运行迁移。保留现有的项目设置；除非我要求，否则不要使用 --full。
+把 1.6.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。不要使用旧项目的 node_modules/.bin/vp 运行迁移。保留现有的项目设置；除非我要求，否则不要使用 --full。
 
 解决 BLOCK 项并重新运行迁移。即使迁移成功退出，也要按文档链接审查每个 REVIEW 项。保留测试意图，并在首次验证运行前保留生成的 Vitest v4 与 tsdown <0.23 兼容性设置及注释。
 
@@ -221,7 +221,7 @@ npm exec -- vp build
 
 ### Vitest
 
-Vitest 会通过 `vp migrate` 自动迁移。`vite-plus` 在 `vite-plus/test*` 下重新导出上游的 `vitest@5.0.5`，因此对于 node 模式的测试，只安装一个 `vite-plus` 即可——你不再需要直接安装 `vitest`。
+Vitest 会通过 `vp migrate` 自动迁移。`vite-plus` 在 `vite-plus/test*` 下重新导出上游的 `vitest@5.1.0`，因此对于 node 模式的测试，只安装一个 `vite-plus` 即可——你不再需要直接安装 `vitest`。
 
 对于浏览器模式，你可以使用 `vite-plus` 内置的基础浏览器运行时（`@vitest/browser`）与 Preview provider（`@vitest/browser-preview`）。要使用 Playwright 或 WebDriverIO，你还需要可选的 provider（`@vitest/browser-playwright` 或 `@vitest/browser-webdriverio`）及其框架 peer（`playwright` 或 `webdriverio`）。
 

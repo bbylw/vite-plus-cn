@@ -28,6 +28,10 @@ irm https://vite.plus/ps1 | iex
 
 在 Windows 上，你也可以下载并运行 [`vp-setup.exe`](https://setup.viteplus.dev)。
 
+macOS 与 Linux 的安装说明另见 [Homebrew tap 指南](/guide/homebrew)。
+
+安装器使用 Vite+ 仓库 [`.node-version`](https://github.com/voidzero-dev/vite-plus/blob/main/.node-version) 中固定的 Node.js 版本来安装其 JavaScript 依赖。每个 Vite+ 发行版在构建时内嵌该版本。开发与 CI 使用同一个文件，依赖升级工作流会保持其最新。CI 集成可以通过 [`VP_SETUP_NODE_VERSION`](/guide/global-cli) 选择另一个兼容版本。
+
 安装完成后，打开新的 shell 并运行：
 
 ```bash
@@ -36,9 +40,9 @@ vp help
 
 如果在安装过程中启用了环境管理，Vite+ 会为 Node.js 以及 npm、pnpm、Yarn 和 Bun 的 shim 记录受管模式。运行 `vp env off` 可改为优先使用系统工具，也可以通过 `vp env off node` 或 `vp env off pm` 将更改限定在特定范围。
 
-**安装器环境变量与选项**
+**环境变量与选项**
 
-Vite+ 安装器（`vp-setup.exe`、`install.ps1` 与 `install.sh`）以及安装后的 `vp` CLI 会读取下列环境变量。
+Vite+ 安装器（`vp-setup.exe`、`install.ps1` 与 `install.sh`）和 CLI 使用下列环境变量完成安装、运行时配置与子工具调用。
 
 ### 安装变量
 
@@ -61,6 +65,47 @@ Vite+ 安装器（`vp-setup.exe`、`install.ps1` 与 `install.sh`）以及安装
   # PowerShell
   $env:VP_VERSION = "1.2.3"; irm https://vite.plus/ps1 | iex
   ```
+
+#### `VP_SETUP_NODE_VERSION`
+
+- **用途**：选择用于安装全局 CLI JavaScript 依赖的 Node.js 版本。[`setup-vp`](/guide/ci) 等 CI 集成会设置该变量以复用项目的运行时。
+- **取值**：确切版本、版本范围或别名，例如 `22.23.1`、`22`、`^22.18.0`、`lts` 或 `latest`。安装器会把该值一次性解析为确切版本。
+- **默认值**：未设置或为空（使用内嵌的 Node.js 默认版本）。项目文件、`VP_NODE_VERSION`、会话覆盖与用户级默认值都不会改变此默认值。
+- **兼容性**：解析出的版本必须同时满足全局 CLI 及其固定 `pnpm` 的 Node.js 要求。否则，安装器使用内嵌默认版本。无效或无法解析的值会导致错误。
+- **范围**：仅限首次依赖安装。该变量不会设置项目固定版本、会话覆盖或全局默认值。[`vp upgrade`](/guide/upgrade) 不使用该变量。
+
+#### `VP_SETUP_NODE_VERSION_FILE`
+
+- **用途**：可选的输出文件，供需要 `VP_SETUP_NODE_VERSION` 解析出的确切版本的集成使用。
+- **内容**：解析出的版本（例如 `22.23.1`），在依赖安装成功后写入。如果兼容性要求安装时使用内嵌默认版本，文件中仍会写入所请求版本的解析结果。
+- **默认值**：未设置（不写入文件）。当 `VP_SETUP_NODE_VERSION` 未设置或为空，或跳过依赖安装时，安装器也不会写入文件。
+
+`setup-vp` 会自动管理该文件。请使用它的 Node.js 输入来配置 CI 作业。
+
+#### `VP_SETUP_SKIP_INSTALL_LOCKFILE`
+
+将该变量设为 `1`，可从全局 CLI 安装或 `vp upgrade` 期间与锁文件相关的错误中恢复。其他所有值（包括未设置或为空）都保持启用已发布的安装锁文件。
+
+安装器会打印警告，并在不读取或恢复安装锁文件的情况下解析依赖。所请求的 CLI 版本保持固定，但其依赖版本可能与发行版锁文件不同。registry、认证与代理设置仍然生效。该选项不影响 `vp install` 等项目安装。
+
+```bash
+# 不使用随附锁文件重试安装。
+curl -fsSL https://vite.plus | VP_SETUP_SKIP_INSTALL_LOCKFILE=1 bash
+
+# 或重试升级，包括当前已安装的版本。
+VP_SETUP_SKIP_INSTALL_LOCKFILE=1 vp upgrade --force
+```
+
+```powershell
+$env:VP_SETUP_SKIP_INSTALL_LOCKFILE = "1"
+try {
+  irm https://vite.plus/ps1 | iex
+} finally {
+  Remove-Item Env:VP_SETUP_SKIP_INSTALL_LOCKFILE
+}
+```
+
+请保持该覆盖为临时状态。取消设置该变量后，后续安装与升级会重新使用已发布的锁文件。要连同锁文件重新安装受影响的版本，请取消设置该变量并运行 `vp upgrade <version> --force`。
 
 #### `VP_HOME`
 
@@ -182,6 +227,7 @@ Vite+ 安装器（`vp-setup.exe`、`install.ps1` 与 `install.sh`）以及安装
 
 - **用途**：覆盖 Node.js 版本
 - **默认值**：无（自动检测）
+- **范围**：运行时命令。安装器的依赖安装请使用 [`VP_SETUP_NODE_VERSION`](/guide/global-cli)。
 - **示例**：
 
   ```bash
@@ -244,6 +290,16 @@ Vite+ 安装器（`vp-setup.exe`、`install.ps1` 与 `install.sh`）以及安装
 #### 内部变量
 
 Vite+ 在 shim 调度与 shell 集成过程中会设置额外的 `VP_*` 变量（递归保护、活动版本记录、包装器标志）；请勿手动设置它们。
+
+### 子进程变量
+
+这些变量由 Vite+ 为它启动的工具设置。
+
+#### `VP_USER_AGENT`
+
+`vp`、`vpr` 与 `vpx` 会为其子进程设置 `VP_USER_AGENT=vp/<version>`。全局 CLI 与项目本地的 `vite-plus` 包都支持该行为。每次调用报告自己的版本；当全局 CLI 委托给本地 CLI 时，由本地版本接管。
+
+即使底层包管理器替换了 `npm_config_user_agent`，也可以用该变量检测 Vite+。请读取第一个以空格分隔的产品标记（`vp/<version>`），以便使用方能够容忍未来版本中新增的字段。该值标识的是 CLI，而不是命令或其参数。普通工具 shim（例如 `node`、`npm` 与 `npx`）会保留继承到的值，而不会自行创建。
 
 ### TLS/CA 配置
 
@@ -311,6 +367,14 @@ source ~/.config/vite-plus/env.nu
 
 对于自定义的 `XDG_CONFIG_HOME`，请使用安装时解析得到的 `<XDG_CONFIG_HOME>/vite-plus/env.nu` 绝对路径。对于安装在 `VP_HOME` 下的情况，或现有的 `~/.vite-plus` 安装，请改用 `<VP_HOME>/env.nu` 或 `~/.vite-plus/env.nu`。请把占位符替换为实际路径，并为包含空格的路径加上引号。打开新的 Nushell 会话并运行 `vp help` 以验证配置。
 
+#### Nushell 版本
+
+请使用 Nushell 0.112.1 或更高版本。在 Nushell 中，自定义命令或别名可以与内置命令同名，例如 `def update []`。Nushell 会在你的配置之后读取 Vite+ 的 `env.nu`。因此，`env.nu` 必须使用 [`%` 记号](https://www.nushell.sh/lang-guide/chapters/custom_commands.html#calling-custom-commands)调用内置命令，该记号由 Nushell 0.112.1 引入。
+
+`vp env setup` 会检查 `PATH` 上的 `nu`。对于更早的 Nushell 版本，它会写入不带该记号的 `env.nu`。那份 `env.nu` 仍然可用，但与内置命令同名的自定义命令可能导致 Nushell 在启动时报 `nu::parser::extra_positional` 或类似的解析错误并停止。升级 Nushell 后，请再次运行 `vp env setup`。
+
+如果你安装了多个 Nushell，请确保 `vp env setup` 期间 `PATH` 上的 `nu` 就是你启动时使用的那个。早于 0.112.1 的 Nushell 无法解析 `vp env setup` 为更高版本写入的 `env.nu`。
+
 #### `CI`
 
 - **用途**：表示正在 CI 环境中运行
@@ -336,7 +400,7 @@ source ~/.config/vite-plus/env.nu
 
 ### Homebrew
 
-对于 Homebrew 安装，第一次运行 `vp` 命令会设置你的 shell、shim 与环境管理偏好。它复用 Homebrew 的二进制文件与随附的 JavaScript。设置过程会把完成状态保存在用户目录中，无需对 Homebrew 前缀拥有写权限。
+[官方 Homebrew tap](/guide/homebrew) 安装原生 CLI。第一次运行 `vp` 命令会在你的数据目录中安装匹配的 JavaScript 依赖，并设置你的 shell、shim 与环境管理偏好。设置过程把状态保存在你的目录中，不写入 Homebrew 前缀。
 
 后续命令会复用该设置，只要已安装的二进制文件保持不变。当 Homebrew 替换某个版本时，生成的 shim 会跟随 Homebrew 的公共 `vp` 入口。设置过程会在替换期间保留你已保存的管理偏好。
 
@@ -346,11 +410,13 @@ source ~/.config/vite-plus/env.nu
 VP_NODE_MANAGER=no VP_PM_MANAGER=no vp help
 ```
 
-设置完成后，可使用 `vp env off` 更改此偏好。需要缺失运行时或项目依赖的命令仍然可以下载它们。
+设置完成后，可使用 `vp env off` 更改此偏好。tap 仍会准备其固定的 Node.js 与 pnpm 来安装 CLI 依赖。需要缺失运行时或项目依赖的命令也可以下载它们。
 
 使用 Homebrew 来[升级](/guide/upgrade)或[移除](/guide/implode)该包。
 
-`vp env doctor` 会识别 Homebrew 安装及其二进制路径。它会分别检查 `vp` 命令与 `PATH` 上的用户 shim 目录。如果只缺少 shim 目录，请按照它给出的 shell 设置说明启用 shim。
+`vp env doctor` 会识别 Homebrew 来源、formula 名称与二进制路径。它会分别检查 `vp` 命令与 `PATH` 上的用户 shim 目录。如果只缺少 shim 目录，请按照它给出的 shell 设置说明启用 shim。
+
+registry 配置与迁移说明请参阅[官方 tap 指南](/guide/homebrew)。
 
 ## 不安装项目本地包也能使用
 

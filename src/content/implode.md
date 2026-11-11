@@ -25,13 +25,15 @@ vp implode --yes
 
 ## Homebrew
 
-先运行 `vp implode` 移除 Vite+ 管理的运行时、全局包、配置、shim 和 shell 条目。然后移除 Homebrew 包：
+对于[官方 Homebrew tap](/guide/homebrew)，先运行 `vp implode` 移除 Vite+ 管理的运行时、全局包、配置、shim 和 shell 条目。然后移除 Homebrew 包：
 
 ```bash
 vp implode
-brew uninstall vite-plus
+brew uninstall voidzero-dev/vite-plus/vp
 ```
 
-确认提示会说明 Homebrew 包将保持安装。清理完成后，`vp implode` 会引导你执行 `brew uninstall vite-plus`。
+确认提示会说明 Homebrew 包将保持安装。清理完成后，`vp implode` 会显示所属 formula 的卸载命令。
+
+如果想在切换安装方式时保留数据，请改为按照[迁移步骤](/guide/homebrew)操作，而不是运行 `vp implode`。
 
 再次运行 `vp` 之前请重启终端。在 Bash 中，你可以运行 `hash -r` 来清除缓存的命令路径。如果 Homebrew 包仍然安装，下一次 `vp` 命令会重新开始首次运行设置。

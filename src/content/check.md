@@ -15,12 +15,21 @@
 ```bash
 vp check
 vp check --fix              # 格式化并运行自动修复程序。
+vp check --continue-on-error # 报告所有已启用的检查，即使格式化失败。
 vp check --quiet            # 隐藏代码检查警告；仍报告错误并因错误而失败。
 vp check --deny-warnings    # 将代码检查警告视为错误。
 vp check --no-fmt           # 跳过格式化；运行代码检查（如果已启用还包括类型检查）。
 vp check --no-lint          # 跳过代码检查规则；在已启用时保留类型检查。
 vp check --no-fmt --no-lint # 仅类型检查（需要同时启用 `typeAware` 和 `typeCheck`）。
 ```
+
+如果格式化失败，`vp check` 会在代码检查与类型检查运行之前停止。要修复格式问题并应用可用的代码检查修复，请运行 `vp check --fix`，该命令会修改文件。要跳过格式化并运行其余已启用的检查，请运行 `vp check --no-fmt`。
+
+使用 `vp check --continue-on-error` 可以运行所有已启用的检查，在一次调用中报告格式化、代码检查与类型错误，且不修改文件。类型检查仍需要现有的 `lint.options.typeAware` 与 `lint.options.typeCheck` 设置。只要有任何检查失败，即使命令中后续的检查通过，命令也会以非零状态退出。不传 `--continue-on-error` 时，保留原有的快速失败行为。
+
+`--continue-on-error` 也可以与 `--fix` 一起使用：某个工具报告失败后检查仍会继续，并在代码检查修复之后再次运行格式化。第一个失败的退出状态会被保留。`--no-fmt`、`--no-lint`、`--quiet` 与 `--deny-warnings` 等选项保持原有行为。配置加载或命令启动错误仍会中止命令。
+
+请把 `vp check` 的标志放在文件路径之前，例如 `vp check --fix src/index.ts`。第一个路径之后的参数会传给格式化与代码检查工具，而不是 `vp check`。
 
 ## 配置
 

@@ -5,6 +5,47 @@ import localCli from './local-cli.md?raw';
 import cli from './cli.md?raw';
 import env from './env.md?raw';
 import packageManagement from './package-management.md?raw';
+import pmSelection from './package-management/package-manager-selection.md?raw';
+import pmGlobalPackages from './package-management/global-packages.md?raw';
+import pmInstall from './package-management/install.md?raw';
+import pmAdd from './package-management/add.md?raw';
+import pmRemove from './package-management/remove.md?raw';
+import pmUpdate from './package-management/update.md?raw';
+import pmDedupe from './package-management/dedupe.md?raw';
+import pmOutdated from './package-management/outdated.md?raw';
+import pmList from './package-management/list.md?raw';
+import pmWhy from './package-management/why.md?raw';
+import pmInfo from './package-management/info.md?raw';
+import pmLink from './package-management/link.md?raw';
+import pmUnlink from './package-management/unlink.md?raw';
+import pmRebuild from './package-management/rebuild.md?raw';
+import pmDlx from './package-management/dlx.md?raw';
+import pmCi from './package-management/ci.md?raw';
+import pmPrune from './package-management/prune.md?raw';
+import pmLicenses from './package-management/licenses.md?raw';
+import pmSearch from './package-management/search.md?raw';
+import pmAudit from './package-management/audit.md?raw';
+import pmFund from './package-management/fund.md?raw';
+import pmPing from './package-management/ping.md?raw';
+import pmApproveBuilds from './package-management/approve-builds.md?raw';
+import pmPatch from './package-management/patch.md?raw';
+import pmPatchCommit from './package-management/patch-commit.md?raw';
+import pmPack from './package-management/pack.md?raw';
+import pmVersion from './package-management/version.md?raw';
+import pmPublish from './package-management/publish.md?raw';
+import pmStage from './package-management/stage.md?raw';
+import pmDistTag from './package-management/dist-tag.md?raw';
+import pmDeprecate from './package-management/deprecate.md?raw';
+import pmLogin from './package-management/login.md?raw';
+import pmLogout from './package-management/logout.md?raw';
+import pmWhoami from './package-management/whoami.md?raw';
+import pmToken from './package-management/token.md?raw';
+import pmOwner from './package-management/owner.md?raw';
+import pmTeam from './package-management/team.md?raw';
+import pmConfig from './package-management/config.md?raw';
+import pmPkg from './package-management/pkg.md?raw';
+import pmCache from './package-management/cache.md?raw';
+import homebrew from './homebrew.md?raw';
 import dev from './dev.md?raw';
 import check from './check.md?raw';
 import lint from './lint.md?raw';
@@ -117,9 +158,249 @@ export const docs: Record<string, DocMeta> = {
   },
   '/guide/package-management': {
     title: '包管理',
-    description: 'vp 自动包装 pnpm/npm/Yarn/Bun 的依赖命令。',
+    description: 'vp 为 npm、pnpm、Yarn 与 Bun 提供统一的包管理命令界面。',
     markdown: packageManagement,
-    group: 'setup',
+    group: 'package-management',
+  },
+  '/guide/package-management/package-manager-selection': {
+    title: '包管理器选择',
+    description: '包管理器检测顺序、版本范围与 shim。',
+    markdown: pmSelection,
+    group: 'package-management',
+  },
+  '/guide/package-management/global-packages': {
+    title: '全局包',
+    description: 'Vite+ 独立全局包存储的安装、更新与 Node.js 选择。',
+    markdown: pmGlobalPackages,
+    group: 'package-management',
+  },
+  '/guide/package-management/install': {
+    title: 'vp install',
+    description: '安装项目依赖，自动适配所检测的包管理器。',
+    markdown: pmInstall,
+    group: 'package-management',
+  },
+  '/guide/package-management/add': {
+    title: 'vp add',
+    description: '添加依赖并更新清单与锁文件。',
+    markdown: pmAdd,
+    group: 'package-management',
+  },
+  '/guide/package-management/remove': {
+    title: 'vp remove',
+    description: '移除依赖并更新清单与锁文件。',
+    markdown: pmRemove,
+    group: 'package-management',
+  },
+  '/guide/package-management/update': {
+    title: 'vp update',
+    description: '更新项目依赖。',
+    markdown: pmUpdate,
+    group: 'package-management',
+  },
+  '/guide/package-management/dedupe': {
+    title: 'vp dedupe',
+    description: '合并重复的依赖版本。',
+    markdown: pmDedupe,
+    group: 'package-management',
+  },
+  '/guide/package-management/outdated': {
+    title: 'vp outdated',
+    description: '列出有更新版本的依赖。',
+    markdown: pmOutdated,
+    group: 'package-management',
+  },
+  '/guide/package-management/list': {
+    title: 'vp list',
+    description: '列出已安装的包。',
+    markdown: pmList,
+    group: 'package-management',
+  },
+  '/guide/package-management/why': {
+    title: 'vp why',
+    description: '解释某个包为何被安装。',
+    markdown: pmWhy,
+    group: 'package-management',
+  },
+  '/guide/package-management/info': {
+    title: 'vp info',
+    description: '查看包的 registry 元数据。',
+    markdown: pmInfo,
+    group: 'package-management',
+  },
+  '/guide/package-management/link': {
+    title: 'vp link',
+    description: '创建本地包的开发链接。',
+    markdown: pmLink,
+    group: 'package-management',
+  },
+  '/guide/package-management/unlink': {
+    title: 'vp unlink',
+    description: '移除本地包链接。',
+    markdown: pmUnlink,
+    group: 'package-management',
+  },
+  '/guide/package-management/rebuild': {
+    title: 'vp rebuild',
+    description: '重建原生模块。',
+    markdown: pmRebuild,
+    group: 'package-management',
+  },
+  '/guide/package-management/dlx': {
+    title: 'vp dlx',
+    description: '下载并运行包二进制，不添加为依赖。',
+    markdown: pmDlx,
+    group: 'package-management',
+  },
+  '/guide/package-management/ci': {
+    title: 'vp pm ci',
+    description: '按锁文件做干净安装。',
+    markdown: pmCi,
+    group: 'package-management',
+  },
+  '/guide/package-management/prune': {
+    title: 'vp pm prune',
+    description: '移除多余的包。',
+    markdown: pmPrune,
+    group: 'package-management',
+  },
+  '/guide/package-management/licenses': {
+    title: 'vp pm licenses',
+    description: '列出依赖的许可证。',
+    markdown: pmLicenses,
+    group: 'package-management',
+  },
+  '/guide/package-management/search': {
+    title: 'vp pm search',
+    description: '搜索 registry 中的包。',
+    markdown: pmSearch,
+    group: 'package-management',
+  },
+  '/guide/package-management/audit': {
+    title: 'vp pm audit',
+    description: '检查依赖的安全漏洞。',
+    markdown: pmAudit,
+    group: 'package-management',
+  },
+  '/guide/package-management/fund': {
+    title: 'vp pm fund',
+    description: '列出依赖的资助信息。',
+    markdown: pmFund,
+    group: 'package-management',
+  },
+  '/guide/package-management/ping': {
+    title: 'vp pm ping',
+    description: '测试 registry 连通性。',
+    markdown: pmPing,
+    group: 'package-management',
+  },
+  '/guide/package-management/approve-builds': {
+    title: 'vp pm approve-builds',
+    description: '管理依赖构建脚本的允许列表。',
+    markdown: pmApproveBuilds,
+    group: 'package-management',
+  },
+  '/guide/package-management/patch': {
+    title: 'vp pm patch',
+    description: '为依赖生成本地补丁。',
+    markdown: pmPatch,
+    group: 'package-management',
+  },
+  '/guide/package-management/patch-commit': {
+    title: 'vp pm patch-commit',
+    description: '把补丁目录写回清单与锁文件。',
+    markdown: pmPatchCommit,
+    group: 'package-management',
+  },
+  '/guide/package-management/pack': {
+    title: 'vp pm pack',
+    description: '创建包 tarball。',
+    markdown: pmPack,
+    group: 'package-management',
+  },
+  '/guide/package-management/version': {
+    title: 'vp pm version',
+    description: '提升包版本号。',
+    markdown: pmVersion,
+    group: 'package-management',
+  },
+  '/guide/package-management/publish': {
+    title: 'vp pm publish',
+    description: '发布包到 registry。',
+    markdown: pmPublish,
+    group: 'package-management',
+  },
+  '/guide/package-management/stage': {
+    title: 'vp pm stage',
+    description: '暂存发布：先上传到暂存区，再批准上线。',
+    markdown: pmStage,
+    group: 'package-management',
+  },
+  '/guide/package-management/dist-tag': {
+    title: 'vp pm dist-tag',
+    description: '管理包的 dist-tag。',
+    markdown: pmDistTag,
+    group: 'package-management',
+  },
+  '/guide/package-management/deprecate': {
+    title: 'vp pm deprecate',
+    description: '弃用某个包的版本。',
+    markdown: pmDeprecate,
+    group: 'package-management',
+  },
+  '/guide/package-management/login': {
+    title: 'vp pm login',
+    description: '登录 registry 账户。',
+    markdown: pmLogin,
+    group: 'package-management',
+  },
+  '/guide/package-management/logout': {
+    title: 'vp pm logout',
+    description: '登出 registry 账户。',
+    markdown: pmLogout,
+    group: 'package-management',
+  },
+  '/guide/package-management/whoami': {
+    title: 'vp pm whoami',
+    description: '显示当前 registry 用户名。',
+    markdown: pmWhoami,
+    group: 'package-management',
+  },
+  '/guide/package-management/token': {
+    title: 'vp pm token',
+    description: '管理 registry 访问令牌。',
+    markdown: pmToken,
+    group: 'package-management',
+  },
+  '/guide/package-management/owner': {
+    title: 'vp pm owner',
+    description: '管理包的所有者。',
+    markdown: pmOwner,
+    group: 'package-management',
+  },
+  '/guide/package-management/team': {
+    title: 'vp pm team',
+    description: '管理组织团队。',
+    markdown: pmTeam,
+    group: 'package-management',
+  },
+  '/guide/package-management/config': {
+    title: 'vp pm config',
+    description: '读写包管理器配置。',
+    markdown: pmConfig,
+    group: 'package-management',
+  },
+  '/guide/package-management/pkg': {
+    title: 'vp pm pkg',
+    description: '读取并更新 package.json 字段。',
+    markdown: pmPkg,
+    group: 'package-management',
+  },
+  '/guide/package-management/cache': {
+    title: 'vp pm cache',
+    description: '管理包管理器缓存。',
+    markdown: pmCache,
+    group: 'package-management',
   },
   '/guide/check': {
     title: '检查（vp check）',
@@ -204,6 +485,12 @@ export const docs: Record<string, DocMeta> = {
     description: '在单个工具链下管理多包仓库。',
     markdown: monorepo,
     group: 'toolchain',
+  },
+  '/guide/homebrew': {
+    title: 'Homebrew tap',
+    description: '通过官方 Homebrew tap 安装与管理 vp。',
+    markdown: homebrew,
+    group: 'global-cli',
   },
   '/guide/env': {
     title: '环境管理',
@@ -323,7 +610,7 @@ export const docs: Record<string, DocMeta> = {
 
 /** 旧路径别名 -> 新路径 */
 export const legacyRedirects: Record<string, string> = {
-  '/guide/install': '/guide/package-management',
+  '/guide/install': '/guide/package-management/install',
   '/guide/config': '/config',
 };
 
@@ -348,7 +635,6 @@ export const navGroups: NavGroup[] = [
       { path: '/guide/migrate-rules', label: '迁移规则' },
       { path: '/guide/vitest-v5', label: '升级到 Vitest 5' },
       { path: '/guide/upgrade-project', label: '更新项目中的 Vite+' },
-      { path: '/guide/package-management', label: '包管理' },
     ],
   },
   {
@@ -367,14 +653,63 @@ export const navGroups: NavGroup[] = [
       { path: '/guide/automatic-data-tracking', label: '自动数据追踪' },
       { path: '/guide/github-actions-cache', label: 'GitHub Actions 缓存' },
       { path: '/guide/vpx', label: '运行二进制' },
+      { path: '/guide/package-management/dlx', label: 'vp dlx' },
       { path: '/guide/commit-hooks', label: '提交钩子' },
       { path: '/guide/monorepo', label: 'Monorepo' },
+    ],
+  },
+  {
+    id: 'package-management',
+    label: '包管理',
+    items: [
+      { path: '/guide/package-management', label: '包管理概览' },
+      { path: '/guide/package-management/package-manager-selection', label: '包管理器选择' },
+      { path: '/guide/package-management/global-packages', label: '全局包' },
+      { path: '/guide/package-management/install', label: 'install' },
+      { path: '/guide/package-management/add', label: 'add' },
+      { path: '/guide/package-management/remove', label: 'remove' },
+      { path: '/guide/package-management/update', label: 'update' },
+      { path: '/guide/package-management/dedupe', label: 'dedupe' },
+      { path: '/guide/package-management/outdated', label: 'outdated' },
+      { path: '/guide/package-management/list', label: 'list' },
+      { path: '/guide/package-management/why', label: 'why' },
+      { path: '/guide/package-management/info', label: 'info' },
+      { path: '/guide/package-management/link', label: 'link' },
+      { path: '/guide/package-management/unlink', label: 'unlink' },
+      { path: '/guide/package-management/rebuild', label: 'rebuild' },
+      { path: '/guide/package-management/dlx', label: 'dlx' },
+      { path: '/guide/package-management/ci', label: 'pm ci' },
+      { path: '/guide/package-management/prune', label: 'pm prune' },
+      { path: '/guide/package-management/licenses', label: 'pm licenses' },
+      { path: '/guide/package-management/search', label: 'pm search' },
+      { path: '/guide/package-management/audit', label: 'pm audit' },
+      { path: '/guide/package-management/fund', label: 'pm fund' },
+      { path: '/guide/package-management/ping', label: 'pm ping' },
+      { path: '/guide/package-management/approve-builds', label: 'pm approve-builds' },
+      { path: '/guide/package-management/patch', label: 'pm patch' },
+      { path: '/guide/package-management/patch-commit', label: 'pm patch-commit' },
+      { path: '/guide/package-management/pack', label: 'pm pack' },
+      { path: '/guide/package-management/version', label: 'pm version' },
+      { path: '/guide/package-management/publish', label: 'pm publish' },
+      { path: '/guide/package-management/stage', label: 'pm stage' },
+      { path: '/guide/package-management/dist-tag', label: 'pm dist-tag' },
+      { path: '/guide/package-management/deprecate', label: 'pm deprecate' },
+      { path: '/guide/package-management/login', label: 'pm login' },
+      { path: '/guide/package-management/logout', label: 'pm logout' },
+      { path: '/guide/package-management/whoami', label: 'pm whoami' },
+      { path: '/guide/package-management/token', label: 'pm token' },
+      { path: '/guide/package-management/owner', label: 'pm owner' },
+      { path: '/guide/package-management/team', label: 'pm team' },
+      { path: '/guide/package-management/config', label: 'pm config' },
+      { path: '/guide/package-management/pkg', label: 'pm pkg' },
+      { path: '/guide/package-management/cache', label: 'pm cache' },
     ],
   },
   {
     id: 'global-cli',
     label: '全局 CLI',
     items: [
+      { path: '/guide/homebrew', label: 'Homebrew' },
       { path: '/guide/env', label: '环境管理' },
       { path: '/guide/upgrade', label: '升级 Vite+' },
       { path: '/guide/implode', label: '移除 Vite+' },

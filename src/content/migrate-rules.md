@@ -18,10 +18,30 @@
 
 在已经依赖 `vite-plus` 的项目上，`vp migrate` 只执行升级：更新依赖与包管理器配置，并完成导入收尾。它不会触碰项目设置。
 
-- `--full` 还会执行设置操作：git 钩子、编辑器配置、代理文件、ESLint、Prettier 与 tsup 迁移、框架 shim、tsconfig 的 `baseUrl` 修复，以及 `.nvmrc`/Volta 到 `.node-version` 的转换。
+- `--full` 还会执行设置操作：git 钩子、编辑器配置、代理文件、ESLint、Prettier、tsup 与 tsx 迁移、框架 shim、tsconfig 的 `baseUrl` 修复，以及 Volta 到 `.node-version` 的转换。
 - `--hooks`、`--agent` 与 `--editor` 可在不加 `--full` 的情况下选择执行单个设置操作。
 
 当默认升级跳过了本应执行的设置操作时，它会打印一条提示，建议运行 `vp migrate --full`。全新的（非 Vite+）项目始终执行完整迁移。
+
+## Oxlint JSON 继承
+
+当 `.oxlintrc.json` 或 `.oxlintrc.jsonc` 使用 `extends` 时，`vp migrate` 会相对声明它的配置来解析每个文件路径。它会创建共享的 TypeScript 配置，并通过 `lint.extends` 导入它们，包括嵌套继承。Oxlint 会沿用既有的合并顺序、规则严重级别与 overrides。普通的 `vp lint` 无需 `-c` 标志即可使用迁移后的规则。
+
+迁移假定项目是 ESM。共享配置会成为同级的 `.ts` 文件。JavaScript 与 TypeScript 配置中的导入使用 `.js` 说明符，Vite 与 TypeScript 会把它们解析到生成的源文件，而无需更改编译器设置。文件级的 TypeScript pragma 会保留在生成的导入之前。工作区使用方会复用同一批生成的模块，包括拥有某个共享配置的工作区自身。迁移默认值保留在每个工作区本地的 `lint` 块中。编辑这些 TypeScript 文件即可更新共享设置。原始的共享 JSON 与 JSONC 文件仍可供其他使用方使用；对它们的编辑不会更新迁移后的配置。
+
+JS 插件声明保留在其原始配置或 override 中。相对插件路径会在运行时通过 `fileURLToPath(new URL(..., import.meta.url))` 变为绝对路径。显式继承的 `typeAware` 与 `typeCheck` 设置优先于迁移默认值。
+
+清理会独立移除每个已完成工作区的符号链接。仍留在磁盘上的共享别名会保留其目标与依赖可用。
+
+共享配置的拥有者会通过引用共享模块，把 `env`、`globals`、`settings` 与 `ignorePatterns` 保留在其 `lint` 块的顶层。对这些字段的编辑作用于拥有者。其他使用方不会继承它们。
+
+生成的模块包含来源标记。之后的迁移尝试会复用这些模块而不替换用户的编辑，因此被保留的使用方可以在其冲突解决后再迁移。没有匹配标记的既有模块仍视为冲突。
+
+失败的合并与已有的 `lint` 块会在 Vite 配置中记录待处理标记，因此孤立的失败可以在冲突解决后重试。成功的合并会移除该标记。已完成的工作区合并会记录完成标记，包括被内联合并的配置。修复无法读取的配置后，再次运行 `vp migrate` 即可迁移其余使用方，并移除不再需要的 JSON 文件。
+
+共享配置导入使用字面路径，以便 Vite 与 TypeScript 能解析包含 `#` 或 `%` 的文件名。包含 `?` 或字面反斜杠的相对导入路径需要手动迁移：Vite 把 `?` 视为查询分隔符，TypeScript 把反斜杠视为路径分隔符。这些情况下迁移会保留 JSON 配置并报告警告。
+
+缺失的文件、无效的 JSON、继承循环、冲突的输出文件，以及相对 Vite 配置目录解析结果不同的包本地插件，都会产生警告并保留原始配置。项目或工作区之外的配置、`node_modules` 内的配置、CommonJS 形式的 Vite 配置，以及已有的 `lint` 块，都需要手动合并。工作区 JSON 的移除会等到所有迁移结果都已知后才进行。被保留的 JSON 使用方会保留其传递依赖，包括拥有者已成功迁移的配置。如果继承图无法读取，工作区 JSON 文件会被保留，其拥有者使用共享模块，因为无法读取的使用方可能仍会引用它们。`vp lint` 仍然拒绝 `lint.extends` 中的字符串路径；路径解析只发生在迁移期间。
 
 ## 打包配置
 
@@ -174,10 +194,12 @@ build: {
 
 `vite` 与 `vite/*` 导入**仅在配置入口文件中**会被重写为 `vite-plus`：`vite.config.*`、`vitest.config.*`，以及迁移所解析到的任何配置文件。其他所有文件保留其 `vite` 导入，原因有二：
 
-- `vite-plus` 并非 Vite 暴露面的超集保证。它只拥有 `defineConfig`、`defineProject` 与 `lazyPlugins`，因此重写 `createBuilder` 或 `loadConfigFromFile` 这类透传符号（包括 `typeof import('vite')` 类型位置中的）可能导致问题。
+- `vite-plus` 并非 Vite 暴露面的超集保证。它只拥有 `defineConfig`、`defineProject`、`lazyPlugins` 与 `resolveConfigFromFile`，因此重写 `createBuilder` 或 `loadConfigFromFile` 这类透传符号（包括 `typeof import('vite')` 类型位置中的）可能导致问题。
 - 未重写的 `vite` 导入在 Vite+ 项目中仍会通过 `@voidzero-dev/vite-plus-core` 别名解析。
 
 插件包（以 `vite-plugin-` 或 `unplugin-` 开头的无 scope 名称，或在 `peerDependencies`/`dependencies` 中声明 `vite` 的包）即使在配置文件中也会跳过重写。该规则仅作用于 `vite` 说明符。
+
+`vite/rolldown` 与 `vite/rolldown/*` 绝不会被重写，因为 `vite-plus` 不导出这些子路径；它们会继续通过 core 别名解析。
 
 `declare module 'vite'` 增强遵循同一规则，并在配置文件之外被保留。通过 core 别名，它们会到达同一个 `@voidzero-dev/vite-plus-core` 模块，而该模块的 `UserConfig` 类型为来自 `vite-plus` 的 `defineConfig` 提供类型，因此迁移后它们仍能正常工作；`vite-plus` 本身不导出 `UserConfig` 符号，所以被重写的 `declare module 'vite-plus'` 增强将无从合并。针对 `vite-plus` 自身暴露面的扩展需要手动基于 `vite-plus` 编写。
 
@@ -233,8 +255,11 @@ Vite+ 捆绑了 Oxlint，因此迁移会移除独立的 `oxlint` 依赖。你自
 | `eslint`      | `vp lint`，当其可选迁移运行时  |
 | `prettier`    | `vp fmt`，当其可选迁移运行时   |
 | `tsup`        | `vp pack`，当其可选迁移运行时  |
+| `tsx`         | `vpx`，当其可选迁移运行时      |
+| `oxnode`      | `vpx`，当其可选迁移运行时      |
+| `ts-node`     | `vpx`，用于受支持的仅转译命令  |
 
-对于通过 `bunx` 启动的命令，迁移会保留 `bunx` 及其 `--bun` 标志（保留用户选择的运行时），只重写受管理的命令。当 `bunx` 跟在 `run` 或 `--` 这类命令启动分隔符之后时，这也同样适用：
+对于通过 `bunx` 启动的命令，迁移会保留 `bunx` 及其 `--bun` 标志（保留用户选择的运行时），只重写受管理的命令。tsx 是例外：`bunx tsx` 会变成 `vpx`，而 `bunx --bun tsx` 保留 tsx（参见 [tsx 到 `vpx`](#tsx-到-vpx)）。当 `bunx` 跟在 `run` 或 `--` 这类命令启动分隔符之后时，这也同样适用：
 
 | 之前                                                    | 之后                                                     |
 | ------------------------------------------------------- | -------------------------------------------------------- |
@@ -245,16 +270,93 @@ Vite+ 捆绑了 Oxlint，因此迁移会移除独立的 `oxlint` 依赖。你自
 
 无关的 `bunx` 命令以及其他包执行器形式保持不变。
 
+### tsx 到 `vpx`
+
+当 `package.json` 脚本、lint-staged 任务或 `#!/usr/bin/env tsx` shebang 运行 [tsx](https://tsx.is) 时，迁移会提议把它换成 [`vpx`](/guide/vpx)——Vite+ 的 TypeScript 脚本运行器。它会重写 `package.json` 与 JSON lint-staged 文件中的脚本和 lint-staged 任务，以及脚本文件中的 `#!/usr/bin/env tsx` shebang：
+
+| 之前                                                                       | 之后                                               |
+| -------------------------------------------------------------------------- | -------------------------------------------------- |
+| `tsx src/seed.ts --rows 10`                                                | `vpx src/seed.ts --rows 10`                        |
+| `tsx watch --include "*.json" src/a.ts`                                    | `vpx --watch --include "*.json" src/a.ts`          |
+| `npx tsx a.ts`、`pnpm exec tsx a.ts`、`pnpm dlx tsx a.ts`、`bunx tsx a.ts` | `vpx a.ts`                                         |
+| `node --import tsx ./a.ts`                                                 | `node --import vite-plus/register ./a.ts`          |
+| `node --import=tsx --test`                                                 | `node --import=vite-plus/register --test`          |
+| `NODE_OPTIONS='--import tsx' mocha`                                        | `NODE_OPTIONS='--import vite-plus/register' mocha` |
+| `cross-env NODE_ENV=dev tsx a.ts`                                          | `cross-env NODE_ENV=dev vpx a.ts`                  |
+| `concurrently "tsx watch a.ts" "vp dev"`                                   | `concurrently "vpx --watch a.ts" "vp dev"`         |
+
+`tsx watch` 会变成 `vpx --watch`，绝不是 `vpx watch`——后者运行的是 npm 包 `watch`。Node.js 选项与 tsx watch 选项保持原有顺序，`--no-cache` 会被丢弃。带引号的命令只有在会执行它的程序中才会被重写，例如 `concurrently`、`nodemon --exec`、`sh -c` 与 `cross-env-shell`；其他程序的带引号参数（如 `echo "tsx a.ts"`）是数据。`vpx` 需要与 Vite+ 本身相同的 Node.js 版本，而迁移已经会把不兼容的运行时固定升级到这些版本（参见 [Vitest 5](/guide/vitest-v5)）。
+
+普通的 `node --import tsx` 与 `node --import=tsx` 形式会保留 Node.js、其选项、包装器与参数。它们使用 [`vite-plus/register`](/guide/vpx)，因此 Node.js 保留其 eval、测试发现与原生 watch 行为。字面的 `NODE_OPTIONS` 赋值也会迁移，包括通过 `cross-env` 与已知命令启动器的赋值。`vite-plus/register` 接受 `TSX_TSCONFIG_PATH` 作为回退。同时加载旧有 tsx 钩子，或到达仍需要 tsx 的命令的赋值，保持不变。
+
+对于 tsx 可执行文件以及 `--loader tsx/esm`、`-r tsx/cjs` 这类旧有加载器形式，迁移沿用既有的 `vpx` 规则。遇到 `--eval`、`--print` 或 `--check`、REPL、不带文件或在 watch 模式下的 `--test`、没有文件扩展名的入口，或通过 `NODE_OPTIONS` 加载 tsx 的命令时，它会保留 tsx 并给出警告。包含管道、变量或子 shell 的命令也保持不变。`vpx` 同样接受 `TSX_TSCONFIG_PATH` 作为回退；显式的 `--tsconfig` 优先。
+
+两条迁移路径都会读取命令点名的脚本，包括本地的 `--require` 与 `--import` 模块。当脚本尚不存在（例如由更早的命令生成），或 Vite+ 加载器会在其上失败时，它们会保留 tsx：只有 tsx 能把 `./a.js` 的 `require()` 解析到 `a.ts`、带 `import` 或 `export` 的 `.cts` 文件，或在没有 `"type": "module"` 的包中把 `import` 与 `__dirname`、`__filename`、`require()` 或 `module.exports` 混用的文件。该检查会跳过 glob 以及 `cd` 或其他 shell 状态变更之后的脚本，并且只读取命令点名的文件，不读取它们导入的模块。它不会查找其他编译器差异，例如标准装饰器、`require()` 中的 tsconfig `paths`，或 `node16`/`nodenext` 的 tsconfig `module`；这些由加载器在脚本运行时报告。在 `dependencies`、`optionalDependencies` 或 `peerDependencies` 中列出 tsx 的包也会保留它，因为替代品来自 `vite-plus` 开发依赖。
+
+只有当不再有任何东西使用 tsx 时，迁移才会移除 `tsx` 开发依赖：没有被保留的脚本、没有对 `tsx` 或其子路径（如 `tsx/esm/api`）的导入（无论在源码、构建输出还是 `package.json` 的 `imports` 别名中）、没有 shebang、没有 `package.json` 或 JSON/JavaScript 配置中的 `--import=tsx` 这类工具设置，也没有 CI 工作流、git 钩子或 shell 脚本中的 tsx 命令。只要还有任何工作区包在使用 tsx，根依赖就会保留；只要其下还有嵌套包在使用，包的依赖就会保留。tsx 被保留时，警告会点名仍在使用它的东西。
+
+工具配置与源码文件需要手动编辑。例如，把 `nodeArguments: ['--import=tsx']` 改为 `nodeArguments: ['--import=vite-plus/register']`，或把 Mocha 的 `"import": "tsx"` 设置改为 `"import": "vite-plus/register"`。如果项目使用 tsx 的编程 API，请保留 tsx。
+
+其他差异参见[从 tsx 迁移](/guide/vpx)。
+
+### oxnode 到 `vpx`
+
+迁移会提议用 `vpx` 替换 `oxnode`——来自 `@oxc-node/cli` 的命令。它会重写 `package.json` 脚本、`package.json` 与 JSON 文件中的 lint-staged 任务，以及 `#!/usr/bin/env oxnode` shebang。`#!/usr/bin/env -S node --import @oxc-node/core/register` 这类 Node.js 预加载 shebang 会保留 Node.js 并使用 `vite-plus/register`，包括无扩展名的脚本。迁移会保留 shebang 的 `env` 语法、标志与相对路径。在已经使用 Vite+ 的项目上，运行 `vp migrate --full` 以包含该迁移。
+
+| 之前                                                      | 之后                                                 |
+| --------------------------------------------------------- | ---------------------------------------------------- |
+| `oxnode ./scripts/seed.ts`                                | `vpx ./scripts/seed.ts`                              |
+| `oxnode -C dev ./build.ts`                                | `vpx -C dev ./build.ts`                              |
+| `oxnode watch --include "config/*.json" ./server.ts`      | `vpx --watch --include "config/*.json" ./server.ts`  |
+| `node --import @oxc-node/core/register ./scripts/seed.ts` | `node --import vite-plus/register ./scripts/seed.ts` |
+| `NODE_OPTIONS='--import @oxc-node/core/register' mocha`   | `NODE_OPTIONS='--import vite-plus/register' mocha`   |
+
+`node --import @oxc-node/core/register` 与 `register.mjs` 形式会保留 Node.js、其包装器、参数，以及原生的 watch、eval 与测试模式。字面的 `NODE_OPTIONS` 赋值也会使用公开的预加载。使用 `oxnode` 可执行文件的命令则遵循 `vpx` 规则：`oxnode --watch` 保持不变，因为它启动的是 Node.js 的 watcher，而 `oxnode watch` 与 `vpx --watch` 使用 oxc-node 的 watcher。
+
+显式把 `OXC_TRANSFORM_ALL` 设为 `typescript` 以外任何值的命令保持不变。非空的 `VP_SCRIPT_TSCONFIG` 与 `TSX_TSCONFIG_PATH` 赋值也保持不变，因为它们会改变配置选择。读取环境文件的命令保持不变，因为环境文件可能选择不同的转换模式。迁移会检查点名的脚本与本地预加载是否独立使用 oxc-node API——那会在迁移后配置不同的加载器；它不会追踪它们的导入。
+
+当 register 导入变化时，自定义的异步 `--loader` 与 `--experimental-loader` 钩子会保持原有顺序。这支持项目在 Vite+ TypeScript 加载器之外使用自己的解析与资源加载器。它并不保证与第二个 TypeScript 转换器或任意同步 `module.registerHooks()` 链的兼容性。
+
+当额外的 `--require` 或 `--import` 可能改变加载器设置时，直接的 `oxnode` 命令与 Node.js 预加载命令保持不变。当内联代码仍调用独立 oxc-node API 时，Node.js 命令也保持不变。迁移会相对拥有包检查显式的本地 shebang 加载器是否引用独立 API，但不追踪它们的导入。它会保持这些路径不变：在运行时，相对加载器路径使用调用方的工作目录，而不是脚本所在目录。
+
+只有当没有剩余使用需要它们时，才会移除 `@oxc-node/cli` 与 `@oxc-node/core` 开发依赖。加载器引用、API 导入、CI 命令、钩子与 shell 脚本都可能让这些依赖继续安装。迁移还会检查 `--env-file` 与 `--env-file-if-exists` 点名的文件，无论其文件名如何。如果无法解析或读取某个环境文件，它会保留这些依赖以供手动审查。运行时与 peer 依赖保持原位。
+
+### ts-node 到 `vpx`
+
+只有当类型检查被显式禁用时，迁移才会提议用 `vpx` 替换受支持的 ts-node 命令。普通的 `ts-node` 会在执行前做类型检查；`vpx` 不会。仍会做类型检查的命令保持不变并给出警告，即使另一个选项启用了仅转译模式。
+
+| 之前                                                                              | 之后                                                                |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `ts-node --transpileOnly ./scripts/seed.ts`                                       | `vpx ./scripts/seed.ts`                                             |
+| `ts-node -T -P tsconfig.scripts.json ./scripts/seed.ts`                           | `vpx --tsconfig=tsconfig.scripts.json ./scripts/seed.ts`            |
+| `ts-node-transpile-only ./scripts/seed.ts`                                        | `vpx ./scripts/seed.ts`                                             |
+| `node -r ts-node/register/transpile-only ./scripts/seed.ts`                       | `node --import vite-plus/register ./scripts/seed.ts`                |
+| `node --loader ts-node/esm/transpile-only ./scripts/seed.ts`                      | `node --import vite-plus/register ./scripts/seed.ts`                |
+| `NODE_OPTIONS='--require ts-node/register/transpile-only' node ./scripts/seed.ts` | `NODE_OPTIONS='--import vite-plus/register' node ./scripts/seed.ts` |
+
+迁移还会从本地 JSONC tsconfig 文件、本地 `extends` 链，以及字面的 `TS_NODE_TRANSPILE_ONLY` / `TS_NODE_TYPE_CHECK` 赋值中读取 `transpileOnly` 与 `typeCheck`。`-P`、`--project` 与 `TS_NODE_PROJECT` 用于选择配置。传给 `-P` 或 `--project` 的目录会解析为其 `tsconfig.json`；`TS_NODE_PROJECT` 中的目录保持不变。当 ts-node 隐式发现某个配置时，迁移会用 `--tsconfig` 固定该文件，使 `vpx` 在整个运行中使用它。类型检查被禁用时，`ts-node-esm` 与 `--esm` 也受支持。
+
+如果现有配置及其本地 `extends` 链同时省略了 `target` 与 `useDefineForClassFields`，命令保持不变并给出警告。这种情况下 ts-node 对类字段默认使用赋值语义，而 `vpx` 默认使用 define 语义。迁移前请把 `compilerOptions.useDefineForClassFields` 设为 `false` 以保留赋值语义。
+
+受支持的 Node.js 预加载命令会保留 Node.js，并把旧的加载器选项与模块一起替换为 `--import vite-plus/register`。字面的 `NODE_OPTIONS` 赋值在到达已知 `node` 命令并通过相同检查时也会迁移。已有的 `TS_NODE_PROJECT` 文件选择保持原位。需要固定隐式配置的预加载保持不变：请在迁移前把 `TS_NODE_PROJECT` 设为配置文件，因为 Node.js 无法接受 `--tsconfig`。
+
+当工作目录没有配置、但入口文件会发现另一个配置时，预加载也保持不变。迁移不会扫描导入的模块以寻找额外的配置文件。
+
+自定义编译器、转译器、SWC、ts-node 编译器覆盖、不受支持的配置继承、eval 与 REPL 用法保持不变。环境文件、Node.js 配置文件、额外的预加载，以及不受支持的 `NODE_OPTIONS` 赋值也会保留原命令，因为它们可能在注册之前改变 ts-node 设置。非空的 `VP_SCRIPT_TSCONFIG`、`TSX_TSCONFIG_PATH` 或 `OXC_TSCONFIG_PATH` 赋值保持不变，因为它们会选择不同的配置。迁移会检查点名的脚本是否存在已知的模块不兼容；它不会追踪它们的导入。迁移后的脚本使用 [`vpx` 的 tsconfig 与模块规则](/guide/vpx)。
+
+静态导入或重导出 CommonJS 值的入口也保持不变。这包括具名、命名空间与默认绑定、CommonJS 包中的 `.js` 文件，以及包入口点。迁移会在不执行依赖的情况下检查 import 与 require 两种解析。未解析的目标，以及在两种模式下解析结果不同的目标，保持不变以供手动审查。即使 `esModuleInterop: true` 也可能以不同于 Node.js 的方式解开 CommonJS 的 `__esModule.default` 值，因此仅凭该设置并不能让默认导入安全。仅类型的导入与导出、仅用于副作用的导入、已检查的 ES 模块目标，以及具名的 Node.js 内置绑定不会触发该检查。
+
+与 oxnode 一样，迁移会重写包脚本、JSON lint-staged 任务与受支持的 env shebang。需要固定配置的 shebang 保持不变，因为配置路径取决于调用方的工作目录。已有的 Vite+ 项目使用 `vp migrate --full`。只有当没有剩余的命令、加载器、API 导入或配置引用需要它时，才会移除 `ts-node` 开发依赖。运行时与 peer 依赖保留，`typescript` 不会被移除。
+
 ## 持续集成规则
 
 迁移会把 `.github` 下 GitHub Actions 工作流与复合 action 中精确的 `voidzero-dev/setup-vp@v1` 引用替换为该 Vite+ 版本已知的最新精确 `setup-vp` 发布版本。冻结的 `v1` 标签不再接收新版本。已有的精确版本与提交 SHA 保持不变。
 
 ## Node.js 版本规则
 
-迁移会把旧有的 Node.js 版本管理器文件转换为 `.node-version`，即 Vite+ 读取的格式。在现有 Vite+ 项目上，该转换属于完整安装操作的一部分，因此通过 `vp migrate --full` 运行；全新迁移则无条件运行。
+迁移会把 Volta 的 `volta.node` 固定转换为 `.node-version`，因为 Vite+ 不读取 Volta。在现有 Vite+ 项目上，该转换属于完整安装操作的一部分，因此通过 `vp migrate --full` 运行；全新迁移则无条件运行。
 
-- `.nvmrc` 与 Volta 的 `volta.node` 固定会被转换为 `.node-version`。已有的 `.node-version` 会被保留。
-- 当 `.nvmrc` 被移除时，`.github/workflows/*.{yml,yaml}` 及 `.github` 下复合 action（`.github/**/action.{yml,yaml}`）中任何 `actions/setup-node` 的 `node-version-file: .nvmrc` 引用都会被重新指向 `.node-version`，以免 CI 因 "node version file ... does not exist" 而失败。
+- 当 `.node-version` 或 `.nvmrc` 存在时，迁移会保留它并跳过 Volta 转换。Vite+ 会直接读取这两个文件（参见 [Node.js 选择](/guide/env)）。
 
 ## 包管理器规则
 
@@ -290,7 +392,9 @@ Vite+ 捆绑了 Oxlint，因此迁移会移除独立的 `oxlint` 依赖。你自
 
 ### Bun
 
-- Bun catalog 只在工作区内解析（根 `package.json` 具有非空的 `workspaces`）。在 bun 工作区中，保留现有的顶层或工作区 catalog 位置以及具名 catalog 引用。独立（单包）bun 项目保留具体 spec，且不会获得 catalog 字段，因为 `bun install` 无法在工作区之外解析 `catalog:`。
+- Bun catalog 只在工作区内解析，工作区即根 `package.json` 具有 `workspaces` 字段。空的 `workspaces` 字段也算。在 bun 工作区中，保留现有的顶层或工作区 catalog 位置以及具名 catalog 引用。没有 `workspaces` 的独立 bun 项目保留具体 spec，且不会获得 catalog 字段，因为 `bun install` 无法在工作区之外解析 `catalog:`。
+- 1.2.21 之前的 Bun 只读取 `workspaces` 下的 catalog。在这些版本上，只有当项目已经在 `workspaces` 下有 catalog 时迁移才使用 catalog，否则保留具体 spec。
+- 当已有的具名 catalog 已经拥有 `vite-plus`、`vite` 或 `vitest` 时，迁移会把缺失的工具链条目添加到该 catalog，而不是在它旁边创建默认 catalog。
 - core 别名会被镜像为直接 `vite` 依赖，以便 Bun 在应用 overrides 之前看到 peer 提供方。
 
 ## 迁移之后

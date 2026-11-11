@@ -39,15 +39,152 @@ export default defineConfig({
 
 文件系统追踪也会追踪输出。如果省略 [`cache.output`](/config/run)，Vite Task 会在成功运行后归档命令写入的文件，并在缓存命中时恢复它们。
 
+### 可重建输入
+
+有些工具会读取它们同时也会写入的文件：
+
+- 启用 [`exports`](https://tsdown.dev/options/package-exports) 时，tsdown 读取 `package.json`，并把生成的 `exports` 字段写回其中。
+- 许多构建工具会列出 `dist`，以便在写入新构建之前删除旧构建。
+- 自带缓存的工具会读取并写回缓存，就像 `tsc --incremental` 对 `tsconfig.tsbuildinfo` 所做的那样。
+
+本节说明 Vite Task 如何处理任务既读取又写入的文件与文件夹。
+
+Vite Task 称这些文件与文件夹为**可重建的**：任务自己产出它们，因此它们不必在任务运行之前就存在。任务可以重建：
+
+- 它写入的文件，例如 `dist/index.mjs` 或 tsdown 更新的 `package.json`。
+- 任务写入了其中全部内容的文件夹，例如 `dist`。
+
+> [!WARNING]
+> 可重建输入假设任务在输入不变时不会持续改变其输出。
+>
+> 例如，一个每次运行都向文件追加数据的脚本就打破了这一假设，而 Vite Task 无法检测出来。Vite Task 会按脚本留下的样子缓存该文件，因此下一次运行是缓存命中，恢复该文件而不追加任何内容。
+
+任务结束后，Vite Task 按任务留下的样子为其输入计算指纹。下一次运行时：
+
+- 可重建输入可能缺失，就像在全新克隆或删除它之后。缓存仍会命中，并随任务输出一起恢复它。
+- 存在的可重建文件必须与任务留下的内容一致。如果被其他东西改动，缓存未命中。
+- 不可重建的输入（例如你的源文件）仍会被严格检查。删除或编辑其中之一会导致缓存未命中。
+
+#### 示例：重写源文件的任务
+
+```ts [vite.config.ts]
+tasks: {
+  build: {
+    // `--exports` 让 tsdown 把生成的 `exports` 字段写入 package.json。
+    command: 'tsdown --exports',
+  },
+}
+```
+
+```
+my-lib/
+├── src/
+│   └── index.ts             # 输入：tsdown 读取它
+└── package.json             # 可重建：tsdown 读取它，然后向其中写入 "exports"
+```
+
+下一次运行时，Vite Task 会把 `package.json` 与 tsdown 写入的文件比较，因此 tsdown 添加的 `exports` 字段不会导致缓存未命中：
+
+```bash
+$ vp run build               # 首次运行：tsdown 向 package.json 添加 "exports"
+$ vp run build               # 缓存命中
+```
+
+自己编辑 `package.json` 仍会导致缓存未命中，这是应该的，因为 tsdown 必须带着你的改动再次运行：
+
+```bash
+$ vp pm pkg set version=1.1.0
+$ vp run build               # 缓存未命中：'package.json' 已修改
+```
+
+#### 示例：列出输出目录以删除的任务
+
+```ts [vite.config.ts]
+tasks: {
+  build: {
+    // `--clean` 在 tsdown 写入新构建之前删除 `dist` 中的旧构建。
+    command: 'tsdown --clean',
+  },
+}
+```
+
+```
+my-lib/
+├── src/
+│   └── index.ts             # 输入
+├── package.json             # 输入
+└── dist/                    # 可重建：任务写入了其中的全部内容
+    └── index.mjs            # 可重建：任务写入它
+```
+
+列出 `dist` 使它成为输入。由于任务写入了 `dist` 中的全部内容，整个文件夹都是可重建的：
+
+```bash
+$ vp run build               # 首次运行：tsdown 写入 dist/
+$ rm -rf dist                # 如同全新克隆
+$ vp run build               # 缓存命中：dist/ 被恢复
+```
+
+即使任务列出 `dist` 以删除旧构建然后写入新构建，你也不需要在 `cache.input` 中写 `'!dist/**'` 来把 `dist` 排除在任务输入之外。
+
+#### 示例：读写自身缓存的任务
+
+```ts [vite.config.ts]
+tasks: {
+  typecheck: {
+    command: 'tsc --incremental --noEmit',
+  },
+}
+```
+
+```
+my-app/
+├── src/
+│   └── main.ts              # 输入：tsc 读取它
+├── tsconfig.json            # 输入：tsc 读取它
+└── tsconfig.tsbuildinfo     # 可重建：tsc 从中读取缓存，然后写回
+```
+
+Vite Task 会把 `tsconfig.tsbuildinfo` 与 tsc 写入的文件比较，因此 tsc 对它的更新不会导致缓存未命中。如果文件缺失（如同全新克隆），缓存命中会恢复它：
+
+```bash
+$ vp run typecheck           # 首次运行：tsc 写入 tsconfig.tsbuildinfo
+$ vp run typecheck           # 缓存命中
+$ rm tsconfig.tsbuildinfo    # 如同全新克隆
+$ vp run typecheck           # 缓存命中：tsconfig.tsbuildinfo 被恢复
+```
+
+#### 避免缓存就地修改文件的任务
+
+重写源文件的任务会使这些文件变为可重建。如果缓存的 `vp fmt` 重写了 `src/utils` 中的每个文件，整个文件夹都会变为可重建：
+
+```
+src/
+└── utils/                   # 可重建：vp fmt 重写了其中的全部内容
+    ├── a.ts                 # 可重建：vp fmt 重写了它
+    └── b.ts                 # 可重建：vp fmt 重写了它
+```
+
+此后删除 `src/utils` 会是一次缓存命中，并把该文件夹写回。
+
+请在你要缓存的 lint 与格式化任务中关闭自动修复：
+
+```ts [vite.config.ts]
+tasks: {
+  lint: 'vp lint', // 而不是 `vp lint --fix`
+  format: 'vp fmt --check', // 而不是 `vp fmt`
+}
+```
+
 ### 限制
 
 Vite Task 无法追踪环境变量的读取，也无法总是分辨被追踪的路径究竟是稳定的输入、生成的输出，还是不应成为输入或输出的工具管理缓存路径。
 
-当文件系统追踪包含了不应影响缓存的文件、漏掉了本应影响的文件，或恢复了错误的输出时，请使用[覆盖输入与输出](#override-inputs-and-outputs)。
+当文件系统追踪包含了不应影响缓存的文件、漏掉了本应影响的文件，或恢复了错误的输出时，请使用[覆盖输入与输出](#覆盖输入与输出)。
 
 当命令需要某个环境变量且其值应影响缓存时，请使用 [`cache.env`](/config/run)；当其值不应影响缓存时，请使用 [`cache.untrackedEnv`](/config/run)。
 
-这些限制不适用于 `vp build`：Vite 会自动上报[协作式追踪](#cooperative-tracking)元数据，包括 `VITE_*`、`NODE_ENV` 以及不应成为输入或输出的 Vite 管理缓存路径。标准的 `vp build` 任务无需手动配置 `input`、`output` 或 `env`。
+这些限制不适用于 `vp build`：Vite 会自动上报[协作式追踪](#协作式追踪)元数据，包括 `VITE_*`、`NODE_ENV` 以及不应成为输入或输出的 Vite 管理缓存路径。标准的 `vp build` 任务无需手动配置 `input`、`output` 或 `env`。
 
 ### 覆盖输入与输出
 
