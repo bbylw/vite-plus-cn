@@ -667,7 +667,21 @@ export function Home() {
       {/* 页脚 */}
       <footer className="border-t border-edge py-8 text-center text-xs leading-relaxed sm:text-sm text-fg-muted">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p>Vite+ 中文文档站点 · 基于 React 19 + vite-plus + Bun 构建</p>
+          <a
+            href="https://www.npmjs.com/package/vite-plus"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex min-h-10 items-center rounded-sm"
+          >
+            <img
+              src="https://img.shields.io/npm/v/vite-plus?label=vite-plus&color=0f766e"
+              alt="vite-plus 最新 npm 版本"
+              width={102}
+              height={20}
+              loading="lazy"
+              className="h-5 w-auto"
+            />
+          </a>
           <div className="flex items-center gap-4 font-medium">
             <a
               href="https://github.com/voidzero-dev/vite-plus"
