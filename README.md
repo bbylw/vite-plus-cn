@@ -1,10 +1,9 @@
 <p align="center">
-  <a href="https://viteplus.dev" target="_blank" rel="noopener noreferrer">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./public/logo-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="./public/logo.svg">
-      <img alt="Vite+" src="./public/logo.svg" height="60">
-    </picture>
+  <a href="https://viteplus.dev/#gh-light-mode-only" target="_blank" rel="noopener noreferrer">
+    <img alt="Vite+" src="./public/logo.svg" width="412">
+  </a>
+  <a href="https://viteplus.dev/#gh-dark-mode-only" target="_blank" rel="noopener noreferrer">
+    <img alt="Vite+" src="./public/logo-dark.svg" width="412">
   </a>
 </p>
 
@@ -122,7 +121,7 @@ export default defineConfig({
 
 - **run** - 运行 monorepo 任务
 - **exec** - 执行本地 `node_modules/.bin` 中的命令
-- **node** - 在已解析的 Vite+ 环境中运行 Node.js 脚本
+- **node** - 在已解析的 Vite+ 环境中运行 Node.js 脚本；TypeScript 脚本使用 `vpx <file>`
 - **dlx** - 不安装为依赖即可执行某个包的可执行文件
 - **cache** - 管理任务缓存
 
