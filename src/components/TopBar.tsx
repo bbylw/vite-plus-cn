@@ -1,13 +1,13 @@
 import { Link, NavLink } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { topNav } from '../content/docs';
 import { useTheme } from '../hooks/useTheme';
-import { GithubIcon, MenuIcon, MoonIcon, SearchIcon, SunIcon } from './icons';
+import { CloseIcon, GithubIcon, MenuIcon, MoonIcon, SearchIcon, SunIcon } from './icons';
 import { SearchModal } from './SearchModal';
 
 function LogoMark() {
   return (
-    <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-linear-to-tr from-accent-strong via-accent to-emerald-400 font-display text-[15px] font-bold text-accent-ink shadow-[0_0_20px_-3px_rgba(45,212,191,0.5)] transition-transform duration-300 group-hover:scale-105">
+    <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-linear-to-tr from-accent-strong via-accent to-emerald-400 font-display text-[15px] font-bold text-accent-ink shadow-[0_0_20px_-3px_rgba(45,212,191,0.5)] motion-safe:transition-transform duration-300 motion-safe:group-hover:scale-105">
       <span className="relative z-10 font-black tracking-tight">V+</span>
       <span
         aria-hidden
@@ -38,6 +38,19 @@ function ThemeToggle() {
 export function TopBar({ onMenu }: { onMenu?: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [mobileOpen]);
 
   // 全局快捷键 Cmd+K / Ctrl+K
   useEffect(() => {
@@ -142,12 +155,26 @@ export function TopBar({ onMenu }: { onMenu?: () => void }) {
             >
               <GithubIcon size={19} />
             </a>
+
+            {!onMenu && (
+              <button
+                ref={menuButton}
+                type="button"
+                onClick={() => setMobileOpen((open) => !open)}
+                aria-label={mobileOpen ? '关闭主导航' : '打开主导航'}
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-navigation"
+                className="home-control inline-flex h-9 w-9 items-center justify-center rounded-xl text-fg-muted transition-colors hover:bg-fg/5 hover:text-fg md:hidden"
+              >
+                {mobileOpen ? <CloseIcon size={20} /> : <MenuIcon size={20} />}
+              </button>
+            )}
           </div>
         </div>
 
         {/* 移动端下拉导航 */}
         {mobileOpen && (
-          <div className="border-t border-edge bg-bg px-4 py-3 md:hidden">
+          <div id="mobile-navigation" className="border-t border-edge bg-bg px-4 py-3 md:hidden">
             <nav className="flex flex-col gap-1" aria-label="主导航（移动端）">
               {topNav.map((item) => (
                 <NavLink

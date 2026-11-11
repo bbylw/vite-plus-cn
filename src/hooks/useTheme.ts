@@ -25,9 +25,18 @@ export function useTheme() {
   });
 
   useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = '*, *::before, *::after { transition: none !important; }';
+    document.head.appendChild(style);
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem(STORAGE_KEY, theme);
     syncMetaColor(theme);
+    void getComputedStyle(document.documentElement).color;
+    const frame = requestAnimationFrame(() => style.remove());
+    return () => {
+      cancelAnimationFrame(frame);
+      style.remove();
+    };
   }, [theme]);
 
   const toggle = useCallback(() => {

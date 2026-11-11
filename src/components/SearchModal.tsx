@@ -157,13 +157,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   // 快捷键支持（ArrowUp, ArrowDown, Enter, Esc）
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) {
-        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-          e.preventDefault();
-          onClose(); // 若父级有 toggle 逻辑
-        }
-        return;
-      }
+      if (!isOpen) return;
 
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -226,7 +220,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               setSelectedIndex(0);
             }}
             placeholder="搜索文档、CLI 命令、配置项或概念..."
-            className="ml-3.5 w-full bg-transparent text-[15px] text-fg placeholder:text-fg-muted/70 focus:outline-none"
+            className="ml-3.5 w-full bg-transparent text-base text-fg placeholder:text-fg-muted/70 focus:outline-none sm:text-[15px]"
           />
           {query && (
             <button

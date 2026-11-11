@@ -238,6 +238,179 @@ h4 {
   }
 }
 
+.home-page {
+  --accent: #0f766e;
+  --accent-strong: #115e59;
+}
+
+.dark .home-page {
+  --accent: #2dd4bf;
+  --accent-strong: #5eead4;
+}
+
+.home-hero-title {
+  font-size: clamp(1.875rem, 5.4vw + 0.5rem, 4rem);
+  line-height: 1.16;
+}
+
+.home-title-accent {
+  background-image: linear-gradient(110deg, #0f766e, #0d8074 55%, #115e59);
+}
+
+.dark .home-title-accent {
+  background-image: linear-gradient(110deg, #2dd4bf, #34d399 55%, #5eead4);
+}
+
+.home-primary {
+  color: #ffffff;
+  background: linear-gradient(110deg, #0f766e, #115e59);
+  box-shadow: 0 4px 12px -4px var(--accent-glow);
+}
+
+.dark .home-primary {
+  color: #042f2e;
+  background: linear-gradient(110deg, #2dd4bf, #20b7a7);
+}
+
+.home-control,
+.home-page .press {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.home-page .press:active {
+  transform: none;
+}
+
+.home-page :focus-visible {
+  border-radius: revert-layer;
+  outline-offset: 4px;
+}
+
+.home-card {
+  box-shadow: 0 2px 6px -4px rgb(15 23 26 / 0.1);
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 200ms ease-out;
+}
+
+.home-install {
+  box-shadow:
+    0 2px 4px -2px rgb(15 23 26 / 0.05),
+    0 16px 36px -24px rgb(15 23 26 / 0.2);
+}
+
+.dark .home-install {
+  box-shadow: 0 20px 48px -28px rgb(0 0 0 / 0.6);
+}
+
+.terminal-shell {
+  container-type: inline-size;
+}
+
+.terminal-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.terminal-lights {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.terminal-toolbar .command-copy {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.terminal-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-column: 1 / -1;
+  grid-row: 2;
+  gap: 4px;
+}
+
+@container (min-width: 490px) {
+  .terminal-tabs {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+.home-page .terminal-content:focus-visible,
+.home-page [aria-label='安装命令，可横向滚动']:focus-visible {
+  outline-color: #5eead4;
+  outline-offset: -3px;
+}
+
+.home-page .terminal-shell button:focus-visible,
+.home-page #install-command button:focus-visible {
+  outline-color: #5eead4;
+  outline-offset: 2px;
+}
+
+.copy-glyph {
+  transition: opacity 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.home-page .reveal {
+  transition-duration: 300ms;
+  transition-timing-function: ease-out;
+}
+
+.home-page .reveal:not(.is-visible) {
+  transform: translateY(12px);
+}
+
+@media (hover: hover) {
+  .home-card:hover {
+    border-color: var(--edge-strong);
+    box-shadow: 0 10px 24px -18px rgb(15 23 26 / 0.2);
+  }
+
+  .dark .home-card:hover {
+    box-shadow: 0 12px 32px -18px rgb(0 0 0 / 0.65);
+  }
+
+  .home-primary:hover {
+    box-shadow:
+      0 6px 18px -6px var(--accent-glow),
+      inset 0 0 0 1px rgb(255 255 255 / 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-control,
+  .home-page .press {
+    transition-property: color, background-color, border-color, box-shadow, scale;
+  }
+
+  .home-control:active:not(:disabled),
+  .home-page .press:active:not(:disabled) {
+    scale: 0.96;
+  }
+
+  .copy-glyph {
+    transition-property: opacity, scale, filter;
+  }
+
+  .copy-glyph.opacity-0 {
+    scale: 0.25;
+    filter: blur(4px);
+  }
+}
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .home-page .spotlight-card::before {
+    display: none;
+  }
+}
+
 /* 代码高亮（基于 github-dark / modern neon） */
 .hljs {
   background: transparent !important;
