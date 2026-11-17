@@ -76,6 +76,20 @@ vp config --no-agent
 
 如果 `core.hooksPath` 指向其他钩子目录，`vp config` 会跳过分发器安装以保留现有设置。运行 `vp hooks status` 查看当前配置。
 
+从 Husky 迁移后，现有克隆可能仍保留本地 `core.hooksPath` 为 `.husky` 或 `.husky/_`。仅当旧目录缺失或为空、没有残留的 Husky 钩子文件、Vite+ 钩子目录包含钩子脚本，且仓库及祖先级包清单不再声明 Husky 依赖、配置或脚本时，`vp config` 与 `vp hooks enable` 才会自动替换这一过期设置。
+
+如果旧文件仍有残留，两个命令都会保留该配置，并报告迁移后的 Vite+ 钩子未生效。这包括拉取迁移提交后，现有克隆中残留的未修改 Husky 生成文件。请先迁移你想保留的自定义检查，移除 Husky 依赖与生命周期命令，然后显式切换此克隆：
+
+```bash
+vp hooks enable --replace-husky
+# 如果迁移后的钩子使用自定义目录：
+vp hooks enable --replace-husky --hooks-dir .custom-hooks
+```
+
+显式选项会更改 `core.hooksPath` 并保留旧文件。**切换后旧目录中的钩子不再运行。**替换通知会说明这一变化。不要把 `--replace-husky` 加入 `prepare` 或其他生命周期脚本；它是针对当前克隆的一次性选择。
+
+自动与显式替换都会保留全局及 worktree 级钩子设置，并拒绝不安全的路径。当注册了多个 worktree 时会跳过替换，因为本地 Git 配置是共享的，另一个检出可能仍在使用 Husky。`VP_GIT_HOOKS=0`、`HUSKY=0` 等环境变量禁用开关即使传入 `--replace-husky` 也仍然有效。
+
 你也可以设置 `VP_GIT_HOOKS=0`，从 `prepare` 或 `postinstall` 等生命周期脚本中禁用钩子安装。
 
 项目自有的钩子脚本（例如 `.vite-hooks/pre-commit`）应提交到仓库。`.vite-hooks/_` 下生成的分发器和 shim 会被忽略，并由 `vp config` 或 `vp hooks enable` 重新创建。这两个命令都不会创建或修改项目钩子脚本或暂存文件配置。

@@ -4,9 +4,9 @@
 
 ## 概览
 
-`vp check` 是 Vite+ 中快速静态检查的默认命令。它汇集了通过 [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) 完成的格式化、通过 [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) 完成的代码检查，以及通过 [tsgolint](https://github.com/oxc-project/tsgolint) 完成的 TypeScript 类型检查。通过将所有这些任务合并到单个命令中，`vp check` 比在独立命令中分别运行格式化、代码检查与类型检查工具更快。
+`vp check` 是 Vite+ 中快速静态检查的默认命令。它汇集了通过 [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html) 完成的格式化、通过 [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) 完成的代码检查，以及通过 [tsrs](https://github.com/oxc-project/tsrs) 完成的 TypeScript 类型检查。通过将所有这些任务合并到单个命令中，`vp check` 比在独立命令中分别运行格式化、代码检查与类型检查工具更快。
 
-当 `vite.config.ts` 中 `lint.options` 块的 `typeAware` 与 `typeCheck` 同时启用时，`vp check` 还会通过由 TypeScript Go 工具链与 [tsgolint](https://github.com/oxc-project/tsgolint) 驱动的 Oxlint 类型感知路径运行 TypeScript 类型检查。`vp create` 与 `vp migrate` 默认启用 `typeAware` 和 `typeCheck`。
+当 `vite.config.ts` 中 `lint.options` 块的 `typeAware` 与 `typeCheck` 同时启用时，`vp check` 还会通过由 `tsrs-lint` 驱动的 Oxlint 类型感知路径运行 TypeScript 类型检查。`vp create` 与 `vp migrate` 默认启用 `typeAware` 和 `typeCheck`。
 
 我们建议同时开启 `typeAware` 与 `typeCheck`，使 `vp check` 成为开发期间静态检查的唯一命令。
 
@@ -15,6 +15,7 @@
 ```bash
 vp check
 vp check --fix              # 格式化并运行自动修复程序。
+vp check --fix-dangerously  # 格式化并应用代码检查修复，包括危险修复与建议。
 vp check --continue-on-error # 报告所有已启用的检查，即使格式化失败。
 vp check --quiet            # 隐藏代码检查警告；仍报告错误并因错误而失败。
 vp check --deny-warnings    # 将代码检查警告视为错误。
@@ -24,6 +25,8 @@ vp check --no-fmt --no-lint # 仅类型检查（需要同时启用 `typeAware` �
 ```
 
 如果格式化失败，`vp check` 会在代码检查与类型检查运行之前停止。要修复格式问题并应用可用的代码检查修复，请运行 `vp check --fix`，该命令会修改文件。要跳过格式化并运行其余已启用的检查，请运行 `vp check --no-fmt`。
+
+使用 `vp check --fix-dangerously` 还会应用危险的代码检查修复与建议。该选项无需 `--fix` 即可启用格式化修复。危险的代码检查修复可能改变程序行为，因此提交前请审查这些更改。同时传入两个标志时，代码检查修复以 `--fix-dangerously` 为准。与 `--fix` 一样，它支持 `--no-fmt` 与 `--continue-on-error`；当通过 `--no-lint` 或 `check.lint: false` 禁用代码检查规则时，会跳过代码检查修复。类型诊断不会被自动修复。
 
 使用 `vp check --continue-on-error` 可以运行所有已启用的检查，在一次调用中报告格式化、代码检查与类型错误，且不修改文件。类型检查仍需要现有的 `lint.options.typeAware` 与 `lint.options.typeCheck` 设置。只要有任何检查失败，即使命令中后续的检查通过，命令也会以非零状态退出。不传 `--continue-on-error` 时，保留原有的快速失败行为。
 

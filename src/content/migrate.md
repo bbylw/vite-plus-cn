@@ -91,9 +91,9 @@ vp migrate my-app
 
 使用目标 Vite+ 1.0 版本（或其预览构建）的 CLI，并使用兼容性指南中受支持的 Node.js 运行时。全局安装是可选的：
 - 已全局安装 vp 时，按 https://viteplus.dev/guide/upgrade 选择目标版本，并检查 `vp toolchain --global`。运行 `vp help` 与 `vp help migrate`，然后在工作区根目录运行 `vp migrate --no-interactive`。
-- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.6.0 版本，使用 `pnpm dlx --package=vite-plus@1.6.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.6.0 vp migrate --no-interactive`。先运行带 `help migrate` 的同一命令（而不是 `migrate --no-interactive`）以阅读其帮助信息。这些命令会在不替换旧项目依赖的前提下拉取目标 CLI。
+- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.7.0 版本，使用 `pnpm dlx --package=vite-plus@1.7.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.7.0 vp migrate --no-interactive`。先运行带 `help migrate` 的同一命令（而不是 `migrate --no-interactive`）以阅读其帮助信息。这些命令会在不替换旧项目依赖的前提下拉取目标 CLI。
 
-把 1.6.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。
+把 1.7.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。
 
 不要使用旧项目的 node_modules/.bin/vp 运行迁移。monorepo 请从工作区根目录迁移，以保证共享清单、catalog、overrides 与锁文件保持一致。
 
@@ -132,21 +132,21 @@ Vite+ 1.0 包含 Vitest 5 中的破坏性变更。请同时阅读 [Vite+ 兼容�
 
 ### 不安装全局 CLI
 
-使用满足 `^22.18.0 || ^24.11.0 || >=26.0.0` 的现有 Node.js 运行时。通过包管理器运行目标迁移工具，而不要先把它加入项目。对于 `1.6.0` 版本：
+使用满足 `^22.18.0 || ^24.11.0 || >=26.0.0` 的现有 Node.js 运行时。通过包管理器运行目标迁移工具，而不要先把它加入项目。对于 `1.7.0` 版本：
 
 **pnpm**
 
 ```bash
-pnpm dlx --package=vite-plus@1.6.0 vp migrate --no-interactive
+pnpm dlx --package=vite-plus@1.7.0 vp migrate --no-interactive
 ```
 
 **npm**
 
 ```bash
-npx --package=vite-plus@1.6.0 vp migrate --no-interactive
+npx --package=vite-plus@1.7.0 vp migrate --no-interactive
 ```
 
-把 `1.6.0` 替换为目标版本。如需预览版，使用其 PR 中的版本，并在 `vp` 命令之前向 `pnpm` 或 `npx` 传入 `--registry=https://registry-bridge.viteplus.dev`。请始终在 `--package` 中写明显式版本，以确保运行的是目标迁移工具，而不是旧的本地 CLI。
+把 `1.7.0` 替换为目标版本。如需预览版，使用其 PR 中的版本，并在 `vp` 命令之前向 `pnpm` 或 `npx` 传入 `--registry=https://registry-bridge.viteplus.dev`。请始终在 `--package` 中写明显式版本，以确保运行的是目标迁移工具，而不是旧的本地 CLI。
 
 迁移完成后，使用更新后的本地 CLI 完成依赖安装并验证：
 
@@ -197,9 +197,9 @@ npm exec -- vp build
 使用目标 Vite+ 1.0 版本（或其预览构建）的 CLI。全局安装是可选的。使用 Vite+ 兼容性指南中受支持的 Node.js 运行时。
 
 - 已全局安装 vp 时，按 https://viteplus.dev/guide/upgrade 升级它，并检查 `vp toolchain --global`。运行 `vp help migrate`，然后在工作区根目录运行 `vp migrate --no-interactive`。
-- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.6.0 版本，运行 `pnpm dlx --package=vite-plus@1.6.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.6.0 vp migrate --no-interactive`。先阅读其帮助输出，这些命令不会先替换项目依赖。
+- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.7.0 版本，运行 `pnpm dlx --package=vite-plus@1.7.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.7.0 vp migrate --no-interactive`。先阅读其帮助输出，这些命令不会先替换项目依赖。
 
-把 1.6.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。不要使用旧项目的 node_modules/.bin/vp 运行迁移。保留现有的项目设置；除非我要求，否则不要使用 --full。
+把 1.7.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。不要使用旧项目的 node_modules/.bin/vp 运行迁移。保留现有的项目设置；除非我要求，否则不要使用 --full。
 
 解决 BLOCK 项并重新运行迁移。即使迁移成功退出，也要按文档链接审查每个 REVIEW 项。保留测试意图，并在首次验证运行前保留生成的 Vitest v4 与 tsdown <0.23 兼容性设置及注释。
 

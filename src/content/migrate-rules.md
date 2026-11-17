@@ -373,8 +373,21 @@ Vite+ 捆绑了 Oxlint，因此迁移会移除独立的 `oxlint` 依赖。你自
 - pnpm 接受逻辑默认 catalog 为顶层 `catalog` 或 `catalogs.default`，但二者不能并存。迁移会保留现有形式，绝不会在其旁边创建另一种形式。
 - 当已有具名 catalog 拥有 `vite-plus`、`vite` 或 `vitest` 时，迁移会复用该受管理的工具链 catalog 来承载新增的依赖与 overrides。只有在无法复用任何受管理或默认 catalog 时，才会创建顶层默认 catalog。
 
+**Peer 规则。** core 版本编码了捆绑的 Vite 版本：core `8.3.5000` 捆绑 Vite `8.3.5`（参见 [RFC](https://github.com/voidzero-dev/vite-plus/blob/main/rfcs/core-version-alignment.md)）。pnpm 会对照 `vite` 别名检查 `vite` peer 范围，因此支持捆绑 Vite 的插件能通过，不支持的插件则失败。
+
+- 迁移不会把 `vite` 添加到 `peerDependencyRules.allowAny` 或 `peerDependencyRules.allowedVersions`。
+- 迁移会从 `allowAny` 中移除 `vite`，并在 `allowedVersions.vite` 的值为 `'*'` 时移除它，即使该条目是你自己写的。这些条目接受的是 `1.x` core 别名。其他 `allowedVersions.vite` 范围（如 `'7 || 8'`）会保留。当没有剩余条目时，迁移会移除相应字段或整个 `peerDependencyRules`。其他条目保留。迁移摘要会点名被移除的规则。
+- 对于预览构建（`0.0.0-commit.<sha>`）或 Vite+ 预发布 core（如 `8.4.0-vp.0`），迁移会继续写入 `vite` 规则。包管理器不会接受这些版本用于 `^8.0.0` 之类的范围。
+- 在 10.2.0 之前的 pnpm 上，迁移也会继续写入 `vite` 规则。这些版本会把 `vite@*` 别名 override 作用于 peer 范围，因此没有该规则时每个 `vite` peer 都会对 core 失败。
+- 迁移后，`vite` peer 范围排除捆绑 Vite 的插件（例如 `^7.0.0`）会产生 peer 警告。启用 `strictPeerDependencies` 时安装会失败。请更新插件，或仅放宽该插件的 peer 范围：
+  - pnpm 12.17.0 及更高版本：添加 override `'vite-plugin-foo>vite:peer': '*'`。pnpm 在该版本弃用了 `peerDependencyRules`。
+  - 更早的 pnpm 版本：添加规则 `allowedVersions: { 'vite-plugin-foo>vite': '*' }`。
+
+  迁移只移除裸 `vite` 键，因此这两种形式都会保留。
+
 **其他规则。**
 
+- 如果 `pnpm-workspace.yaml` 启用了 `trustPolicy: no-downgrade`，迁移会为 Vite+ 捆绑的确切 `tsrs` 版本向 `trustPolicyExclude` 添加例外。这处理了 pnpm 对分阶段引导发布的信任排名（[上游 issue](https://github.com/oxc-project/tsrs/issues/945)）。现有例外会被保留。其他包与其他 `tsrs` 版本仍受该策略约束。如果该策略阻塞了升级，请运行 `vp migrate`。
 - 使用 `vite-plus` 而未直接声明 `vite` 的包保持该布局（参见 [Vite 与 Overrides](#vite-与-overrides)）。
 - 无关的选择器形式与对象值 overrides 会被保留。
 

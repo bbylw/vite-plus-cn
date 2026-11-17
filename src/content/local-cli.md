@@ -69,13 +69,13 @@ pnpm add -D vite-plus
 bun add -D vite-plus
 ```
 
-为包管理器添加 overrides，使其他包解析到 Vite+ 的版本。把 `vite` 别名指向 `@voidzero-dev/vite-plus-core`，并将 `<vite-plus-version>` 设为已安装的 `vite-plus` 版本。把 `vitest` 固定到 `<vitest-version>`，使用 `vp toolchain vitest` 显示的随附版本，从而让整个项目与 `vp test` 共享同一份 Vitest。如果不固定 `vitest`，某个依赖或工作区包可能拉入与随附运行器不同的 Vitest，导致 Vitest 的内部机制（mock、`expect`、运行器状态）被割裂：
+为包管理器添加 overrides，使其他包解析到 Vite+ 的版本。把 `vite` 别名指向 `@voidzero-dev/vite-plus-core`，并将 `<core-version>` 设为已安装的 `vite-plus` 所使用的 core 版本（由 `vp toolchain vite-plus-core` 显示）。把 `vitest` 固定到 `<vitest-version>`，使用 `vp toolchain vitest` 显示的随附版本，从而让整个项目与 `vp test` 共享同一份 Vitest。如果不固定 `vitest`，某个依赖或工作区包可能拉入与随附运行器不同的 Vitest，导致 Vitest 的内部机制（mock、`expect`、运行器状态）被割裂：
 
 **pnpm-workspace.yaml**
 
 ```yaml
 overrides:
-  vite@*: npm:@voidzero-dev/vite-plus-core@<vite-plus-version> # 与已安装的 vite-plus 版本一致
+  vite@*: npm:@voidzero-dev/vite-plus-core@<core-version> # 与 vp toolchain vite-plus-core 显示的版本一致
   vitest@*: <vitest-version> # 与 vp toolchain vitest 显示的版本一致
 ```
 
@@ -83,7 +83,7 @@ overrides:
 
 ```json
 "overrides": {
-  "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+  "vite": "npm:@voidzero-dev/vite-plus-core@<core-version>",
   "vitest": "<vitest-version>"
 }
 ```
@@ -92,7 +92,7 @@ overrides:
 
 ```json
 "resolutions": {
-  "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+  "vite": "npm:@voidzero-dev/vite-plus-core@<core-version>",
   "vitest": "<vitest-version>"
 }
 ```
@@ -107,11 +107,11 @@ overrides:
 > ```json
 > {
 >   "devDependencies": {
->     "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+>     "vite": "npm:@voidzero-dev/vite-plus-core@<core-version>",
 >     "vite-plus": "<vite-plus-version>"
 >   },
 >   "overrides": {
->     "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+>     "vite": "npm:@voidzero-dev/vite-plus-core@<core-version>",
 >     "vitest": "<vitest-version>"
 >   }
 > }
@@ -124,9 +124,10 @@ overrides:
 依赖与插件可能会直接导入 `vite` 或 `vitest`，即使你自己的代码是从 `vite-plus` 导入的。这些 overrides 会让它们的依赖与 Vite+ 使用的工具链保持一致：
 
 - `vite` 别名把这些导入指向 Vite+ 的核心包。多个 Vite 实例会破坏运行时的身份检查：[issue #1391](https://github.com/voidzero-dev/vite-plus/issues/1391) 报告 TanStack Start 返回 404，原因是一次 `instanceof` 检查跨越了两份副本。[PR #2617](https://github.com/voidzero-dev/vite-plus/pull/2617) 通过同一别名共享 Vite，解决了 CLI 侧的问题。
+- core 版本编码了捆绑的 Vite 版本：其主、次版本号即 Vite 的主、次版本号，补丁版本号是 Vite 的补丁版本号乘以 1000 再加发布计数器。例如 core `8.3.5000` 捆绑 Vite `8.3.5`。包管理器会把该版本与插件的 `vite` peer 范围比较，因此支持捆绑 Vite 的插件能通过检查。使用 pnpm 与 Yarn 时，不支持的插件仍会收到 peer 警告。npm 会把 `overrides.vite` 同样作用于 peer 依赖，因此 npm 不会报告不兼容的 `vite` peer，Bun 也不会报告 peer 问题。[Issue #2806](https://github.com/voidzero-dev/vite-plus/issues/2806) 描述了早先 `1.x` 版本导致所有检查失败的情况。
 - 精确固定 `vitest` 可让依赖与 `vp test` 使用同一 Vitest 版本，避免出现彼此分离的 mock、`expect` 实例与运行器状态。[PR #2365](https://github.com/voidzero-dev/vite-plus/pull/2365) 记录了手动安装时的这一要求。
 
-请让核心别名与已安装的 `vite-plus` 版本保持一致，并在升级时把 Vitest 固定值更新为与随附版本匹配。[Issue #2356](https://github.com/voidzero-dev/vite-plus/issues/2356) 描述了依赖机器人如何独立更新这些包，从而把不兼容的版本留在一起安装。
+请让核心别名与已安装 `vite-plus` 的 core 版本保持一致，并在升级时把 Vitest 固定值更新为与随附版本匹配。[Issue #2356](https://github.com/voidzero-dev/vite-plus/issues/2356) 描述了依赖机器人如何独立更新这些包，从而把不兼容的版本留在一起安装。
 
 ## 最佳实践
 

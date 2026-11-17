@@ -101,7 +101,7 @@ VP_PNPM_VERSION=10.20.0 pnpm --version
 
 **Dist-tag 缓存**
 
-当解析包管理器的 dist-tag（如 `latest` 或 `latest-10`）时，包括具名 shim 回退到最新版本的情况，解析出的版本会缓存一小时。当无法访问注册表时，过期的缓存仍然可用。
+当解析包管理器的 dist-tag（如 `latest` 或 `latest-10`）时，包括具名 shim 回退到最新版本的情况，解析出的版本会缓存一小时。当无法访问注册表时，过期的缓存仍然可用。对于 `https://registry.npmjs.org` 以外、在 `.npmrc` 中配有凭据的注册表，由于其响应可能因用户而异，每次解析都会重新查询。
 
 `pn` 运行与 `pnpm` 相同的受管二进制，`pnx` 运行与 `pnpx` 相同的受管二进制（`pnpm dlx`）。这些别名也适用于 v11 之前的受管 pnpm 版本。
 

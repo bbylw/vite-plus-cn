@@ -49,7 +49,7 @@ export default defineConfig({
 - `typeAware: true` 启用需要 TypeScript 类型信息的规则
 - `typeCheck: true` 在代码检查期间启用完整类型检查
 
-该路径由 [tsgolint](https://github.com/oxc-project/tsgolint) 在 TypeScript 7（即 TypeScript Go）工具链之上提供支持。它让 Oxlint 能够访问类型信息，并允许直接通过 `vp lint` 与 `vp check` 进行类型检查。
+Vite+ 使用 [tsrs](https://github.com/oxc-project/tsrs)，它是 TypeScript 7 编译器的 Rust 移植。其 `tsrs-lint` 可执行文件让 Oxlint 能够访问类型信息，并允许直接通过 `vp lint` 与 `vp check` 进行类型检查。
 
 ## JS 插件
 

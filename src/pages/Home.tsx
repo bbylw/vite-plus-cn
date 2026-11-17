@@ -74,7 +74,7 @@ const terminalTabs = [
     label: '1. 安装',
     cmd: 'curl -fsSL https://vite.plus | bash',
     outputs: [
-      { text: '✓ 安装全局 vp 1.6.0', color: 'text-emerald-400' },
+      { text: '✓ 安装全局 vp 1.7.0', color: 'text-emerald-400' },
       { text: '✓ Node.js 与包管理器受管模式已启用', color: 'text-slate-400' },
     ],
   },
@@ -93,7 +93,7 @@ const terminalTabs = [
     label: '3. 开发',
     cmd: 'vp dev',
     outputs: [
-      { text: '  VITE+ v1.6.0  ready in 18 ms', color: 'text-emerald-400 font-bold' },
+      { text: '  VITE+ v1.7.0  ready in 18 ms', color: 'text-emerald-400 font-bold' },
       { text: '  ➜  Local:   http://localhost:5173/', color: 'text-cyan-300' },
       { text: '  ➜  Network: use --host to expose', color: 'text-slate-400' },
       { text: '  ➜  press h + enter to show help', color: 'text-slate-400' },
@@ -555,7 +555,7 @@ export function Home() {
                 <div className="inline-flex items-center gap-2.5 rounded-full border border-accent/25 bg-accent-soft px-3.5 py-2 font-mono text-[0.6875rem] font-medium tracking-wide text-accent sm:text-xs">
                   <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-accent" />
                   Vite+ 统一 Web 工具链
-                  <span className="border-l border-accent/25 pl-2.5 tabular-nums">v1.6</span>
+                  <span className="border-l border-accent/25 pl-2.5 tabular-nums">v1.7</span>
                 </div>
               </Reveal>
 

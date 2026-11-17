@@ -48,7 +48,7 @@ $ vp test ○ cache miss: args changed, executing
 Vite Task 使用[自动数据追踪](/guide/automatic-data-tracking)来了解每个任务缓存所需的信息，因此你无需手动配置。自动数据追踪分为两个层级：
 
 - **文件系统追踪：**对于所有启用了缓存的任务，Vite Task 会记录文件读取、缺失文件探测、目录列举以及写入的输出文件。
-- **协作式追踪：**支持上报缓存的工具可以上报文件系统追踪无法推断的元数据。Vite+ 目前为 `vp build` 支持这一能力。
+- **协作式追踪：**支持上报缓存的工具可以上报文件系统追踪无法推断的元数据。例如 `vp build` 与 `vp test` 都支持协作式追踪。
 
 当任务需要手动追踪规则时，使用 [`cache.input`](/config/run) 或 [`cache.output`](/config/run)。`input` 控制什么会使缓存失效。`output` 控制缓存命中时 Vite Task 恢复哪些文件。
 
