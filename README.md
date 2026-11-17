@@ -200,11 +200,11 @@ vp migrate
 vp install -D vite-plus
 ```
 
-添加包管理器覆盖规则，使其他包使用 Vite+ 的版本。将 `vite` 别名为 `@voidzero-dev/vite-plus-core`，并把 `<vite-plus-version>` 设为已安装的 `vite-plus` 版本。将 `vitest` 固定为 `<vitest-version>`，使用 `vp toolchain vitest` 显示的随附版本。这样项目与 `vp test` 就会使用同一份 Vitest 副本。若不固定版本，某个依赖或 workspace 包可能会安装不同版本的 Vitest，而这两个版本可能使用相互独立的 mock、`expect` 函数以及 runner 状态：
+添加包管理器覆盖规则，使其他包使用 Vite+ 的版本。将 `vite` 别名为 `@voidzero-dev/vite-plus-core`，并把 `<core-version>` 设为已安装的 `vite-plus` 所使用的 core 版本（由 `vp toolchain vite-plus-core` 显示）。core 版本编码了捆绑的 Vite 版本（例如 `8.3.5000` 对应 Vite `8.3.5`），因此包管理器会对照捆绑的 Vite 检查 `vite` peer 范围。将 `vitest` 固定为 `<vitest-version>`，使用 `vp toolchain vitest` 显示的随附版本。这样项目与 `vp test` 就会使用同一份 Vitest 副本。若不固定版本，某个依赖或 workspace 包可能会安装不同版本的 Vitest，而这两个版本可能使用相互独立的 mock、`expect` 函数以及 runner 状态：
 
 ```json
 "overrides": {
-  "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+  "vite": "npm:@voidzero-dev/vite-plus-core@<core-version>",
   "vitest": "<vitest-version>"
 }
 ```
@@ -213,7 +213,7 @@ vp install -D vite-plus
 
 ```yaml
 overrides:
-  vite@*: npm:@voidzero-dev/vite-plus-core@<vite-plus-version> # 与已安装的 vite-plus 版本一致
+  vite@*: npm:@voidzero-dev/vite-plus-core@<core-version> # 与 vp toolchain vite-plus-core 显示的版本一致
   vitest@*: <vitest-version> # 与 vp toolchain vitest 显示的版本一致
 ```
 
@@ -221,7 +221,7 @@ overrides:
 
 ```json
 "resolutions": {
-  "vite": "npm:@voidzero-dev/vite-plus-core@<vite-plus-version>",
+  "vite": "npm:@voidzero-dev/vite-plus-core@<core-version>",
   "vitest": "<vitest-version>"
 }
 ```
