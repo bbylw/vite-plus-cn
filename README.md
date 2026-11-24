@@ -13,7 +13,7 @@ _运行时与包管理、创建、开发、检查、测试、构建、打包以�
 
 ---
 
-Vite+ 是本地 Web 开发的统一入口。它将 [Vite](https://vite.dev/)、[Vitest](https://vitest.dev/)、[Oxlint](https://oxc.rs/docs/guide/usage/linter.html)、[Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)、[Rolldown](https://rolldown.rs/)、[tsdown](https://tsdown.dev/) 以及 [Vite Task](https://github.com/voidzero-dev/vite-task) 整合进一套零配置的工具链，同时还能管理运行时与包管理器的工作流：
+Vite+ 是本地 Web 开发的统一入口。它将 [Vite](https://vite.dev/)、[Vitest](https://vitest.dev/)、[Oxlint](https://oxc.rs/docs/guide/usage/linter.html)、[Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)、[tsrs](https://oxc.rs/docs/guide/usage/typechecker.html)、[oxc-node](https://oxc.rs/docs/guide/usage/oxc-node.html)、[Rolldown](https://rolldown.rs/)、[tsdown](https://tsdown.dev/) 以及 [Vite Task](https://github.com/voidzero-dev/vite-task) 整合进一套零配置的工具链，同时还能管理运行时与包管理器的工作流：
 
 - **`vp env`：** 全局及按项目管理 Node.js 与包管理器
 - **`vp install`：** 自动识别包管理器并安装依赖

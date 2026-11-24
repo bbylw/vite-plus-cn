@@ -29,7 +29,19 @@ npm view vite-plus@<version> dependencies.vite
 
 ### 依赖机器人
 
-Dependabot 与 Renovate 会把 `vite-plus` 和 `vite` 别名视为版本不同的两个独立依赖。机器人可能只更新其中一个。此时 Vite+ 会在运行 Vite 命令之前停止，并要求你运行 `vp migrate`。合并机器人更新前，请检查 `vite` 别名是否与 `npm view vite-plus@<version> dependencies.vite` 的输出一致。如果不一致，在机器人的分支上运行 `vp migrate`。migrate 会固定匹配的别名、overrides 与 Vitest 版本。
+Dependabot 与 Renovate 会把 `vite-plus` 和 `vite` 别名视为版本不同的两个独立依赖。机器人可能只更新其中一个。此时 Vite+ 会在运行 Vite 命令之前停止，并要求你运行 `vp migrate`。
+
+Renovate 可以将符合条件的 Vite+ 与 Vitest 更新合并到同一个 PR 中。首次迁移时，`vp migrate` 会检查你现有的 JSON、JSONC 或 JSON5 Renovate 配置。对于已经使用 Vite+ 的项目，请运行 `vp migrate --full` 重新检查。如果缺少 `group:vitePlus`，交互式运行会在将其添加到 `extends` 之前进行询问，默认选择 **Yes**；非交互式运行会自动添加。在 `.json5` 文件中，该编辑会保留原有的注释、引号和格式。
+
+如果你的配置以字符串形式指定了单个预设，迁移会将其保留在新 `extends` 列表的第一位。要手动启用分组，请在现有预设之后追加 [`group:vitePlus` 预设](https://docs.renovatebot.com/presets-group/#groupviteplus)：
+
+```json [renovate.json]
+{
+  "extends": ["config:recommended", "group:vitePlus"]
+}
+```
+
+Renovate 仍可能在 Vite+ 捆绑某个 Vitest 版本之前提议更新它。合并机器人更新前，请检查 `vite` 别名是否与 `npm view vite-plus@<version> dependencies.vite` 的输出一致，以及 [Vitest 固定版本](#更新-vitest-固定版本)是否与捆绑版本匹配。如果任一版本不同，请在机器人的分支上运行 `vp migrate`。migrate 会固定匹配的别名、overrides 与 Vitest 版本。
 
 如果没有全局 CLI，请通过包管理器运行本页中的 `vp` 命令，例如 `pnpm exec vp toolchain vitest`。
 

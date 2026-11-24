@@ -30,6 +30,8 @@ irm https://vite.plus/ps1 | iex
 
 macOS 与 Linux 的安装说明另见 [Homebrew tap 指南](/guide/homebrew)。
 
+如果你的防火墙限制了出站连接，请参阅[网络主机](#网络主机)。
+
 安装器使用 Vite+ 仓库 [`.node-version`](https://github.com/voidzero-dev/vite-plus/blob/main/.node-version) 中固定的 Node.js 版本来安装其 JavaScript 依赖。每个 Vite+ 发行版在构建时内嵌该版本。开发与 CI 使用同一个文件，依赖升级工作流会保持其最新。CI 集成可以通过 [`VP_SETUP_NODE_VERSION`](/guide/global-cli) 选择另一个兼容版本。
 
 安装完成后，打开新的 shell 并运行：
@@ -169,6 +171,16 @@ try {
   curl -fsSL https://vite.plus | NPM_CONFIG_REGISTRY=https://registry.npmmirror.com bash
   ```
 
+#### `VP_LEGACY_INSTALLER_URL`
+
+- **用途**：用于无法自行运行安装的旧版二进制文件的回退脚本 URL。仅当安装器目录中缺少对应的旧版脚本时，安装器才会使用此 URL。
+- **默认值**：macOS 与 Linux 上为 `https://viteplus.dev/install-legacy.sh`，Windows 上为 `https://viteplus.dev/install-legacy.ps1`。
+- **示例**：
+
+  ```bash
+  VP_LEGACY_INSTALLER_URL=file:///opt/vite-plus/install-legacy.sh bash ./install.sh
+  ```
+
 #### `VP_NODE_MANAGER`
 
 - **用途**：控制安装期间的 Node.js 版本管理器设置。
@@ -211,7 +223,7 @@ try {
 
 #### 开发变量
 
-在开发 Vite+ 本身时，请使用 `VP_LOCAL_TGZ` 与 `VP_LOCAL_BINARY`。`VP_LOCAL_TGZ` 指定本地的 `vite-plus.tgz` 文件，`VP_LOCAL_BINARY` 指定本地的 `vp` 二进制文件。安装器会使用这些文件进行本地构建。
+在开发 Vite+ 本身时，请使用 `VP_LOCAL_TGZ` 与 `VP_LOCAL_BINARY`。它们提供本地的 `vite-plus.tgz` 与 `vp` 二进制文件。对于没有公网访问的生产环境安装，请[使用私有镜像](#从私有镜像安装)。
 
 ### 运行时变量
 
@@ -220,7 +232,7 @@ try {
 #### `VP_NODE_DIST_MIRROR`
 
 - **用途**：Node.js 分发镜像 URL
-- **默认值**：`https://nodejs.org/dist`
+- **默认值**：macOS、Windows 和 glibc Linux 上为 `https://nodejs.org/dist`，musl Linux 上为 `https://unofficial-builds.nodejs.org/download/release`。
 - **详情**：[自定义 Node.js 镜像](/guide/env)
 
 #### `VP_NODE_VERSION`
@@ -398,6 +410,30 @@ source ~/.config/vite-plus/env.nu
 
 例如，`VP_VERSION=1.0.0 vp-setup.exe --version 2.0.0` 会安装 2.0.0 版本。
 
+### 从私有镜像安装
+
+要在没有公网访问的环境下安装全局 CLI，你需要私有 npm 注册表与 Node.js 镜像的 URL。在 Windows 上使用本地副本的 `install.ps1` 或 `vp-setup.exe`，在 macOS 与 Linux 上使用 `install.sh`。
+
+在 Windows 上，将 `VP_VERSION` 设为你的注册表中确切的 Vite+ 版本，并将示例 URL 替换为你的镜像 URL。
+
+```powershell
+$env:VP_VERSION = "<vite-plus-version>"
+$env:NPM_CONFIG_REGISTRY = "https://npm.corp.example/"
+$env:VP_NODE_DIST_MIRROR = "https://artifacts.corp.example/nodejs/dist"
+.\install.ps1
+```
+
+> [!NOTE] 镜像需要提供哪些文件？
+>
+> - **npm 注册表**（`NPM_CONFIG_REGISTRY`）：安装器会读取适用于你平台的全局 CLI 包（例如 Windows x64 对应 `@voidzero-dev/vite-plus-cli-win32-x64-msvc`）。注册表必须保留发布的 `dist.integrity` 和 `dist.attestations.provenance.predicateType` 字段，并在你的机器可访问的 URL 上提供 tarball。引导脚本需要无需 `.npmrc` 凭据即可读取该包。注册表还必须提供安装器固定的 pnpm 以及全局 CLI 包的 `vp-install-lock.yaml` 中适用于你平台的依赖项。
+> - **Node.js 镜像**（`VP_NODE_DIST_MIRROR`）：安装器要求符合 Node.js 分发目录布局，包括 `index.json`、适用于你平台的归档文件以及校验和文件。全局 CLI 包中的 `vpNodeVersion` 字段指定了默认的 Node.js 版本。参见[自定义 Node.js 镜像](/guide/env#自定义-nodejs-镜像)。
+>
+> 你也可以在计划安装版本的 [release 归档](https://github.com/voidzero-dev/vite-plus/releases)中 `vp` 二进制文件旁边找到 `vp-install-lock.yaml`。要查看安装器固定的 pnpm 版本，请在相同发行版标签下检查 `crates/vp_setup/src/install.rs` 中的 `PINNED_PNPM_VERSION`。
+
+开发变量 `VP_LOCAL_TGZ` 与 `VP_LOCAL_BINARY` 仅提供本地构建产物，安装过程仍需要 Node.js、pnpm 以及 CLI 的依赖项。
+
+如果你只需要在项目中使用 CLI，可以[从私有注册表安装 `vite-plus`](/guide/ci#使用私有注册表的离线-ci)。
+
 ### Homebrew
 
 [官方 Homebrew tap](/guide/homebrew) 安装原生 CLI。第一次运行 `vp` 命令会在你的数据目录中安装匹配的 JavaScript 依赖，并设置你的 shell、shim 与环境管理偏好。设置过程把状态保存在你的目录中，不写入 Homebrew 前缀。
@@ -417,6 +453,36 @@ VP_NODE_MANAGER=no VP_PM_MANAGER=no vp help
 `vp env doctor` 会识别 Homebrew 来源、formula 名称与二进制路径。它会分别检查 `vp` 命令与 `PATH` 上的用户 shim 目录。如果只缺少 shim 目录，请按照它给出的 shell 设置说明启用 shim。
 
 registry 配置与迁移说明请参阅[官方 tap 指南](/guide/homebrew)。
+
+## 网络主机
+
+在 Linux 上，你可以从联网机器复制 `install.sh` 并运行 `bash ./install.sh`。对于使用 npm 或 pnpm 以及公共注册表包的稳定发行版，请放行前往 npm 注册表及你所在平台对应 Node.js 主机的出站 HTTPS 连接。
+
+### 安装与日常使用
+
+| 默认主机                                                                                                      | 何时需要                                                                                                              | 覆盖方式                                                                           |
+| ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `registry.npmjs.org`                                                                                          | 安装和 `vp upgrade` 拉取 CLI、pnpm 与依赖；`vp env` 下载包管理器；`vp install`、`vp dlx` 与 `vp create` 拉取 npm 包。 | [`NPM_CONFIG_REGISTRY`](#npm_config_registry)。受管包管理器下载也会读取 `.npmrc`。 |
+| macOS、Windows 与 glibc Linux 上为 `nodejs.org`；musl Linux（如 Alpine）上为 `unofficial-builds.nodejs.org`。 | 安装与 `vp env` 解析 `lts` 等版本并下载 Node.js。                                                                     | [`VP_NODE_DIST_MIRROR`](#vp_node_dist_mirror)                                      |
+
+`vp env list-remote` 会列出 Node.js 与包管理器版本。使用 `vp env list-remote node` 可仅查询 Node.js 索引。[Node.js 签名校验](/guide/env#nodejs-签名校验)使用内置密钥，不需要密钥服务器。
+
+即使已安装全部工具，交互式 `vp` 命令仍可能检查 npm 上是否有更新。Vite+ 会将结果缓存 24 小时。设置 `VP_NO_UPDATE_CHECK=1` 可禁用[自动更新检查](/guide/upgrade)。
+
+### 特定功能所需的主机
+
+| 功能                                   | 额外主机                                                                   | 何时需要                                                                                                                                                             |
+| -------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 一行命令安装器                         | `vite.plus`、`viteplus.dev`                                                | `vite.plus` 会重定向到 `viteplus.dev` 上的 `install.sh` 或 `install.ps1`。使用本地副本可跳过此下载。旧版二进制文件可能还需要[旧版安装器](#vp_legacy_installer_url)。 |
+| Windows 独立安装器                     | `setup.viteplus.dev`、`github.com`、`release-assets.githubusercontent.com` | 安装页面链接到 GitHub Releases，并重定向至资源主机。你可以从联网机器复制可执行文件。                                                                                 |
+| 稳定版 [Homebrew tap](/guide/homebrew) | `github.com`、`release-assets.githubusercontent.com`                       | Homebrew 在安装或升级时会拉取 tap 和发行版归档。首次使用还需要上方的 npm 和 Node.js 主机。                                                                           |
+| [预览构建](#vp_pr_version)             | `registry-bridge.viteplus.dev`                                             | 该桥接服务提供预览包。其他依赖仍可能来自 `registry.npmjs.org`。                                                                                                      |
+| `vp create` 的 GitHub 模板             | `github.com`、`codeload.github.com`                                        | 对于 `vite:library` 等模板，`degit` 会在 GitHub 上解析修订版本并从 codeload 下载归档。                                                                               |
+| Yarn 项目                              | `registry.yarnpkg.com`                                                     | Yarn 默认从此拉取项目依赖。在现代 Yarn 中，可在 `.yarnrc.yml` 中设置 [`npmRegistryServer`](https://yarnpkg.com/configuration/yarnrc#npmRegistryServer) 更改。        |
+
+项目依赖、生成器与任务可能会访问其他主机。生成器可能会调用 `api.github.com`。Vite+ 会对[工作区 Bingo 生成器](/guide/create)通过 `--skip-requests` 禁用这些查询。另见[哪些命令会使用网络](/guide/ci#哪些命令会使用网络)。
+
+对于没有公网访问的机器，请参阅[从私有镜像安装](#从私有镜像安装)。
 
 ## 不安装项目本地包也能使用
 

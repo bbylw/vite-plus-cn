@@ -39,6 +39,24 @@ export default defineConfig({
 
 文件系统追踪也会追踪输出。如果省略 [`cache.output`](/config/run)，Vite Task 会在成功运行后归档命令写入的文件，并在缓存命中时恢复它们。
 
+### 跳过未变更文件的生成器
+
+某些生成器会跳过已经是最新的文件。如果填充缓存的那次运行跳过了某个生成文件，自动输出追踪就会将该文件漏出缓存之外。如果之后你删除了该文件，即使缓存命中，它仍可能缺失。
+
+在 `cache.output` 中，保留 `{ auto: true }` 以归档生成器写入的文件，同时添加一个匹配生成文件的 glob，让 Vite Task 也归档生成器跳过的文件。如果生成器会检查其先前的输出，请将这些输出从 `cache.input` 中排除，以确保删除它们后缓存键保持一致。
+
+```ts [vite.config.ts]
+tasks: {
+  codegen: {
+    command: 'paraglide-js compile --project ./project.inlang --outdir ./src/paraglide',
+    cache: {
+      input: [{ auto: true }, '!src/paraglide/**'],
+      output: [{ auto: true }, 'src/paraglide/**'],
+    },
+  },
+}
+```
+
 ### 可重建输入
 
 有些工具会读取它们同时也会写入的文件：
@@ -284,5 +302,6 @@ Vite+ 为 `vp build` 和 `vp test` 支持协作式追踪。`vp test` 会上报 V
 | 从输入中排除某个输出目录               | `input: [{ auto: true }, '!dist/**']`                                                         |
 | 从输入和输出追踪中排除某个临时生成文件 | `input: [{ auto: true }, '!.tmp/config.mjs']`；`output: [{ auto: true }, '!.tmp/config.mjs']` |
 | 对任务关闭自动文件追踪                 | `input: ['src/**']`；`output: ['dist/**']`                                                    |
+| 恢复任务可能跳过的生成文件             | `output: [{ auto: true }, 'src/paraglide/**']`                                                |
 | 追踪并传递环境变量                     | `env: ['NODE_ENV']`                                                                           |
 | 传递环境变量但不纳入指纹               | `untrackedEnv: ['GITHUB_ACTIONS']`                                                            |

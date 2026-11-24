@@ -19,6 +19,7 @@
 在已经依赖 `vite-plus` 的项目上，`vp migrate` 只执行升级：更新依赖与包管理器配置，并完成导入收尾。它不会触碰项目设置。
 
 - `--full` 还会执行设置操作：git 钩子、编辑器配置、代理文件、ESLint、Prettier、tsup 与 tsx 迁移、框架 shim、tsconfig 的 `baseUrl` 修复，以及 Volta 到 `.node-version` 的转换。
+- `--full` 会检查现有的 Renovate 配置是否包含 `group:vitePlus` 预设。参见[依赖机器人](/guide/upgrade-project#依赖机器人)。
 - `--hooks`、`--agent` 与 `--editor` 可在不加 `--full` 的情况下选择执行单个设置操作。
 
 当默认升级跳过了本应执行的设置操作时，它会打印一条提示，建议运行 `vp migrate --full`。全新的（非 Vite+）项目始终执行完整迁移。
@@ -144,6 +145,7 @@ build: {
 
 - 直接声明的 `vite` 绝不会仅因为存在根 override 就被移除。
 - 普通或过期的别名会被规范化；具名 catalog 引用会被保留。
+- 当迁移在 npm 或 Bun override 中设置或移除包自身的固定版本（`"."`）时，子条目（如 `overrides.vite.postcss`）会保留在 `package.json` 中。
 - 在 pnpm 下，受管理的 override 键使用显式的 `@*` 范围（`vite@*`、`vitest@*`）。pnpm 通过替换每个清单（包括 importer 清单）中声明的 spec 来应用 override。裸键会匹配任何 spec，包括 `catalog:`，随后 `vp up` 会把该引用重写为具体版本。`@*` 范围使 override 作用于传递依赖与 peer 声明所使用的 semver 范围，并把 `catalog:` 引用留给 catalog——后者已将其解析为 Vite+ core。迁移会为仍使用裸键的项目重新设置键，并保留其具名 catalog 选择。
 - Bun 会为核心别名镜像一个直接依赖以服务于其 peer 解析器；npm 的浏览器 provider 布局可能需要一个顶层 `vite` 边，以便嵌套的 Vitest 包能够解析 `vite`。
 
@@ -180,15 +182,15 @@ build: {
 - `@vitest/coverage-c8` 停留在较早的版本，没有 Vitest 4 版本；以及
 - 第三方 `vitest-*` 集成保持各自兼容的版本，但它们所需的 Vitest peer 仍可能触发[直接安装](#何时需要直接安装-vitest)。
 
-对于浏览器模式，Vite+ 捆绑了基础 `@vitest/browser` 运行时与 `@vitest/browser-preview`；迁移会移除它们的直接依赖条目。Playwright provider 仍为可选。迁移会通过首选的工具链 catalog 或依赖条目，为 `@vitest/browser-playwright` 使用捆绑的 Vitest 版本，并同时安装其 `playwright` peer。
+对于浏览器模式，Vite+ 捆绑了基础 `@vitest/browser` 运行时与 `@vitest/browser-preview`。如果被保留的导入使用了其中任一个包（例如从 `@vitest/browser/context` 导入需要 `@vitest/browser`），迁移会保留该包的声明；否则，迁移会从项目的直接依赖中移除这些捆绑包。Playwright provider 仍为可选。迁移会通过首选的工具链 catalog 或依赖条目，为 `@vitest/browser-playwright` 使用捆绑的 Vitest 版本，并同时安装其 `playwright` peer。
 
 迁移会在重写导入之前检测 Playwright 的使用情况，包括旧有的 `vitest/browser-playwright`、`vitest/browser/providers/playwright` 与 `vitest/plugins/browser-playwright` 别名。
 
 `vp migrate` 会把已移除的 Vite+ WebDriverIO 别名恢复为 `@vitest/browser-webdriverio`，并在 provider 缺失时添加 `^5.0.0`。它会升级较旧的版本、收窄允许低于 `5.0.0` 的范围、更新所引用的 catalog 条目，并移除强制使用旧 provider 的 overrides。满足最低要求的版本与范围保持不变。迁移会确保所需的 `webdriverio` peer 就位，并添加与捆绑 Vitest 匹配的 `@vitest/browser` override（Yarn 使用 `resolutions`）。后续的社区 provider 升级由你管理。参见[社区 WebDriverIO provider](/guide/vitest-v5)。
 
-对象值的嵌套 npm 与 Bun overrides 会被保留：它们是用户定义的作用域，而不是标量版本固定。
-
 ## 源码重写规则
+
+当根 lint 配置在某个文件中禁用了 `vite-plus/prefer-vite-plus-imports` 时，迁移会跳过该文件中的 Vite 和 Vitest 导入重写。如果工作区外的模板依赖祖先包的依赖来满足被保留的 Vitest 导入，迁移会保留该声明。参见[在模板与示例中保留上游导入](/guide/migrate#在模板与示例中保留上游导入)。
 
 ### `vite` 导入
 

@@ -21,7 +21,7 @@
 - 确认 `vite.config.ts` 中已启用 `lint.options.typeAware` 和 `lint.options.typeCheck`
 - 检查你的 `tsconfig.json` 是否仍使用 `compilerOptions.baseUrl`
 
-由 `tsgolint` 驱动的 Oxlint 类型检查器路径不支持 `baseUrl`。`vp migrate` 和 `vp lint --init` 会尝试在启用类型感知代码检查之前运行 `vp dlx @andrewbranch/ts5to6 --fixBaseUrl <tsconfig path>` 修复。如果该修复失败或被拒绝，Vite+ 会跳过 `typeAware` 和 `typeCheck`。
+Oxlint 使用的 `tsrs` 类型检查器不支持 `baseUrl`。`vp migrate` 和 `vp lint --init` 会尝试在启用类型感知代码检查之前运行 `vp dlx @andrewbranch/ts5to6 --fixBaseUrl <tsconfig path>` 修复。如果该修复失败或被拒绝，Vite+ 会跳过 `typeAware` 和 `typeCheck`。
 
 ## 嵌套的代码检查或格式化配置未生效
 

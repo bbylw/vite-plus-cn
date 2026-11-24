@@ -74,3 +74,11 @@ export default defineConfig({
 ```
 
 这些选项仅影响 `vp check`；独立的 `vp fmt` 与 `vp lint` 仍会正常运行。如果某个步骤在配置中被禁用，或传入了对应的 `--no-fmt` / `--no-lint` 标志，则会跳过该步骤。由于默认值会应用于每次 `vp check` 运行，调用 `vp check` 的提交钩子也会跳过被禁用的步骤。完整参考请参阅 [check 配置](/config/check)。
+
+### 读取配置
+
+`vp check` 会尽可能在不执行 `vite.config.*` 的情况下直接静态读取 `lint`、`fmt` 和 `check` 配置块，否则会通过 Vite 加载配置。如果 `vp check` 未能读取到你的设置，可设置 `VP_SKIP_STATIC_CONFIG=1` 以始终通过 Vite 加载配置：
+
+```bash
+VP_SKIP_STATIC_CONFIG=1 vp check
+```

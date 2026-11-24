@@ -163,3 +163,40 @@ Dependabot 每周检查 `.github/workflows` 中的 `uses:` 条目。
 - run: vp check
 - run: vp test
 ```
+
+## 使用私有注册表的离线 CI
+
+你可以在没有公网访问的环境下，从私有 npm 注册表（例如 Verdaccio）安装[项目本地 CLI](/guide/local-cli)。如果已经安装了 Node.js，则无需 Node.js 下载镜像。如果你还需要 `vp env`，请参阅[从私有镜像安装](/guide/global-cli#从私有镜像安装)。
+
+在项目的 `.npmrc` 中配置注册表地址，将示例 URL 替换为你自己的地址。
+
+```ini [.npmrc]
+registry=https://npm.corp.example/
+```
+
+如果你手动镜像依赖包，可运行 `pnpm list --lockfile-only --depth Infinity --json` 列出项目锁定的依赖项。请包含开发依赖，并根据 `pnpm-lock.yaml` 中的 `os`、`cpu` 和 `libc` 字段为你的平台选择可选的原生包。
+
+> [!TIP] 阻止包管理器下载
+> 在 `vite-plus` `1.6.x` 和 `1.7.x` 版本中，运行 `vp` 前请设置 `VP_ENV_FORBIDDEN=1`，以阻止它下载项目固定的包管理器。在 PowerShell 中，请与下方命令在同一会话中设置：
+>
+> ```powershell
+> $env:VP_ENV_FORBIDDEN = '1'
+> ```
+>
+> 此设置会禁用 Vite+ 对 Node.js 和包管理器的管理。在这些版本上请直接运行 `pnpm install`，因为 `vp install` 需要受管的包管理器。
+>
+> 从 `1.8.0` 开始，当你仅使用项目本地 CLI 时可以省略该变量，它会直接使用 `PATH` 上的包管理器。
+
+在 Windows 上，请在声明了 `vite-plus` 的包目录中运行以下命令，并确保 `PATH` 上有项目固定的 pnpm 且已提交 `pnpm-lock.yaml`。
+
+```powershell
+pnpm install --frozen-lockfile
+.\node_modules\.bin\vp.cmd check
+.\node_modules\.bin\vp.cmd test
+```
+
+### 哪些命令会使用网络？
+
+- `vp lint`、`vp fmt --check`、`vp check` 和 `vp test` 使用已安装的工具。请提前安装测试套件所需的测试环境、覆盖率提供程序或浏览器二进制文件。项目配置、插件和测试本身可能会发起各自的网络请求。
+- `vp run` 可以从本地缓存重放任务。缓存未命中时，任务会执行其自身的命令，该命令可能会使用网络。配置了远程缓存时同样需要网络访问。
+- `vp install`、`vp add` 和 `vp dlx` 可能会拉取包。`vp migrate` 可能会安装依赖。对于 `vp create`，来源取决于模板：例如 `vite:application` 会从注册表使用 `create-vite@latest`，而 `vite:library` 会从 GitHub 下载其模板。

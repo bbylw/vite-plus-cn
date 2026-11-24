@@ -43,38 +43,38 @@ vp install react
 
 以下命令描述的是项目操作。全局模式参见[选项](#选项)。
 
-- **npm：**`npm install`；带 `--frozen-lockfile` 且不带包名时为 `npm ci`。带包名时：`npm install`。
+- **npm：**`npm install`；带 `--frozen-lockfile` 且不带包名时为 `npm ci`。同时传入 `--lockfile-only` 会运行 `npm ci --dry-run --ignore-scripts`，在不修改 `node_modules` 的情况下检查锁文件。带包名时：`npm install`。
 - **pnpm：**`pnpm install`。带包名时：`pnpm add`。
 - **Yarn Classic：**`yarn install`。带包名时：`yarn add`。
 - **Yarn Modern：**`yarn install`。带包名时：`yarn add`。
 - **Bun：**`bun install`。带包名时：`bun add`。
 
-| 选项                     | npm                       | pnpm               | Yarn Classic | Yarn Modern    | Bun                                | 备注                                          |
-| ------------------------ | ------------------------- | ------------------ | ------------ | -------------- | ---------------------------------- | --------------------------------------------- |
-| `-P, --prod`             | 是                        | 是                 | 是           | 带包名时       | 是                                 | Yarn Modern 在 install 模式下仅发出警告。     |
-| `-D, --dev`              | 是                        | 是                 | 是           | 带包名时       | 是                                 |                                               |
-| `--no-optional`          | 是                        | 是                 | 是           | 否             | 是                                 |                                               |
-| `--frozen-lockfile`      | 不带包名时                | 不带包名时         | 是           | 不带包名时     | 是                                 |                                               |
-| `--no-frozen-lockfile`   | 不带包名时                | 不带包名时         | 不带包名时   | 不带包名时     | 是                                 |                                               |
-| `--lockfile-only`        | 不带 --frozen-lockfile 时 | 是                 | 否           | 3 或更高版本   | 是                                 | npm 在 CI 模式下会忽略此选项。                |
-| `--prefer-offline`       | 是                        | 是                 | 是           | 否             | 1.4.1 或更高版本                   |                                               |
-| `--offline`              | 是                        | 是                 | 是           | 否             | 1.4.1 或更高版本                   |                                               |
-| `-f, --force`            | 不带 --frozen-lockfile 时 | 是                 | 是           | 否             | 是                                 | npm 在 CI 模式下会忽略此选项。                |
-| `--ignore-scripts`       | 是                        | 是                 | 是           | 2.4 或更高版本 | 是                                 | 在 Yarn Modern 上，--lockfile-only 模式优先。 |
-| `--no-lockfile`          | 不带 --frozen-lockfile 时 | 是                 | 是           | 否             | 否                                 | npm 在 CI 模式下会忽略此选项。                |
-| `--fix-lockfile`         | 否                        | 是                 | 否           | 4 或更高版本   | 否                                 |                                               |
-| `--shamefully-hoist`     | 否                        | 是                 | 否           | 否             | 否                                 |                                               |
-| `--resolution-only`      | 否                        | 是                 | 否           | 否             | 否                                 |                                               |
-| `--silent`               | 是                        | 是                 | 是           | 否             | 是                                 |                                               |
-| `--filter <pattern>`     | 7.14.0 或更高版本         | 是                 | 否           | 是             | Install：是。Add：1.4 或更高版本。 |                                               |
-| `-w, --workspace-root`   | 8.1.0 或更高版本          | 是                 | 带包名时     | 否             | 否                                 |                                               |
-| `-E, --save-exact`       | 是                        | 是                 | 是           | 是             | 是                                 |                                               |
-| `--save-peer`            | 是                        | 是                 | 是           | 是             | 是                                 |                                               |
-| `-O, --save-optional`    | 是                        | 是                 | 是           | 是             | 是                                 |                                               |
-| `--save-catalog`         | 否                        | 10.12.0 或更高版本 | 否           | 否             | 1.4 或更高版本                     |                                               |
-| `-g, --global`           | 是                        | 是                 | 是           | 是             | 是                                 |                                               |
-| `--node <version>`       | 是                        | 是                 | 是           | 是             | 是                                 |                                               |
-| `--concurrency <number>` | 是                        | 是                 | 是           | 是             | 是                                 |                                               |
+| 选项                     | npm                       | pnpm               | Yarn Classic | Yarn Modern    | Bun                                | 备注                                                           |
+| ------------------------ | ------------------------- | ------------------ | ------------ | -------------- | ---------------------------------- | -------------------------------------------------------------- |
+| `-P, --prod`             | 是                        | 是                 | 是           | 带包名时       | 是                                 | Yarn Modern 在 install 模式下仅发出警告。                      |
+| `-D, --dev`              | 是                        | 是                 | 是           | 带包名时       | 是                                 |                                                                |
+| `--no-optional`          | 是                        | 是                 | 是           | 否             | 是                                 |                                                                |
+| `--frozen-lockfile`      | 不带包名时                | 不带包名时         | 是           | 不带包名时     | 是                                 |                                                                |
+| `--no-frozen-lockfile`   | 不带包名时                | 不带包名时         | 不带包名时   | 不带包名时     | 是                                 |                                                                |
+| `--lockfile-only`        | 是                        | 是                 | 否           | 3 或更高版本   | 是                                 | 与 --frozen-lockfile 一起使用时，需要 npm 11.16.0 或更高版本。 |
+| `--prefer-offline`       | 是                        | 是                 | 是           | 否             | 1.4.1 或更高版本                   |                                                                |
+| `--offline`              | 是                        | 是                 | 是           | 否             | 1.4.1 或更高版本                   |                                                                |
+| `-f, --force`            | 不带 --frozen-lockfile 时 | 是                 | 是           | 否             | 是                                 | npm 在 CI 模式下会忽略此选项。                                 |
+| `--ignore-scripts`       | 是                        | 是                 | 是           | 2.4 或更高版本 | 是                                 | 在 Yarn Modern 上，--lockfile-only 模式优先。                  |
+| `--no-lockfile`          | 不带 --frozen-lockfile 时 | 是                 | 是           | 否             | 否                                 | npm 在 CI 模式下会忽略此选项。                                 |
+| `--fix-lockfile`         | 否                        | 是                 | 否           | 4 或更高版本   | 否                                 |                                                                |
+| `--shamefully-hoist`     | 否                        | 是                 | 否           | 否             | 否                                 |                                                                |
+| `--resolution-only`      | 否                        | 是                 | 否           | 否             | 否                                 |                                                                |
+| `--silent`               | 是                        | 是                 | 是           | 否             | 是                                 |                                                                |
+| `--filter <pattern>`     | 7.14.0 或更高版本         | 是                 | 否           | 是             | Install：是。Add：1.4 或更高版本。 |                                                                |
+| `-w, --workspace-root`   | 8.1.0 或更高版本          | 是                 | 带包名时     | 否             | 否                                 |                                                                |
+| `-E, --save-exact`       | 是                        | 是                 | 是           | 是             | 是                                 |                                                                |
+| `--save-peer`            | 是                        | 是                 | 是           | 是             | 是                                 |                                                                |
+| `-O, --save-optional`    | 是                        | 是                 | 是           | 是             | 是                                 |                                                                |
+| `--save-catalog`         | 否                        | 10.12.0 或更高版本 | 否           | 否             | 1.4 或更高版本                     |                                                                |
+| `-g, --global`           | 是                        | 是                 | 是           | 是             | 是                                 |                                                                |
+| `--node <version>`       | 是                        | 是                 | 是           | 是             | 是                                 |                                                                |
+| `--concurrency <number>` | 是                        | 是                 | 是           | 是             | 是                                 |                                                                |
 
 带包名时，适用 [add](/guide/package-management/add) 的兼容性规则。
 

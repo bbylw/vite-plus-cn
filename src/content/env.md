@@ -45,6 +45,8 @@ vp env pin 22.0.0 pnpm@10.18.0  # 同样是两个组件
 
 `devEngines.runtime` 的优先级高于 `engines.node`，因为它声明的是开发环境需求，而 `engines.node` 是面向使用者的支持范围。当声明的来源冲突时，`vp env doctor` 会发出警告。
 
+`devEngines.runtime.version` 仅接受 semver 版本与范围，与 npm 和 pnpm 一致。`lts/*` 和 `latest` 等别名可用于 `.node-version`、`.nvmrc` 以及 CLI 参数，但不能用于该字段。当该字段用于选择 Node.js 版本时，使用别名会导致命令在默认的 `onFail`（`error`）或 `download` 下失败；在 `warn` 或 `ignore` 下，Vite+ 会跳过该条目并检查下一个来源。当同目录下有效的 `.node-version` 选择了版本时，该字段中的别名仅会产生警告（如果其 `onFail` 为 `ignore` 则无警告）。要在此处固定当前的 LTS 发行版，请运行 `vp env pin lts`。
+
 > [!TIP]
 > **在 Vite+ 运行时管理下使用 pnpm**
 >
@@ -309,7 +311,10 @@ vp node -e "console.log(1+1)" # 简写：转发任何 node 标志或参数
 
 ## 自定义 Node.js 镜像
 
-默认情况下，Vite+ 从 `https://nodejs.org/dist` 下载 Node.js。如果你位于企业代理之后，或需要使用内部镜像（例如 Artifactory），请设置 `VP_NODE_DIST_MIRROR` 环境变量：
+设置 `VP_NODE_DIST_MIRROR` 可为 Node.js 版本查询与下载指定镜像。默认 URL 取决于你的平台：
+
+- macOS、Windows 和 glibc Linux 使用 `https://nodejs.org/dist`。
+- musl Linux 使用 `https://unofficial-builds.nodejs.org/download/release`。
 
 ```bash
 # 从自定义镜像安装特定版本
@@ -322,6 +327,8 @@ VP_NODE_DIST_MIRROR=https://my-mirror.example.com/nodejs/dist vp env default lts
 echo 'export VP_NODE_DIST_MIRROR=https://my-mirror.example.com/nodejs/dist' >> ~/.zshrc
 ```
 
+有关防火墙规则，请参阅[网络主机](/guide/global-cli#网络主机)。
+
 ## Node.js 签名校验
 
 从官方 `nodejs.org` 分发安装 Node.js 时，Vite+ 会下载 PGP 签名的 `SHASUMS256.txt.asc`，并在信任任何校验和之前用内置的 Node.js 发布密钥验证它。这可以防止被篡改的 `SHASUMS256.txt` 与匹配的恶意归档配对。下载归档的 SHA-256 校验和始终会在之后验证。
@@ -333,3 +340,64 @@ echo 'export VP_NODE_DIST_MIRROR=https://my-mirror.example.com/nodejs/dist' >> ~
 ```bash
 VP_NODE_SKIP_SIGNATURE_VERIFY=1 vp env install 22
 ```
+
+## 替代 nvm 或 fnm
+
+`vp env` 可以替代 [nvm](https://github.com/nvm-sh/nvm) 和 [fnm](https://github.com/Schniz/fnm) 进行 Node.js 版本管理。它会读取这些工具使用的版本文件，因此现有项目无需改动。`vp env` 命令本身不运行 Node.js，因此使用较旧版本（如 Node.js 16 或 18）的项目也能正常工作。
+
+### nvm / fnm 与 Vite+ 的相似之处
+
+- `.nvmrc` 和 `.node-version` 文件可原样使用。Vite+ 还会读取 `package.json` 中的 `engines.node` 和 `devEngines.runtime`。来源优先级请参阅[Node.js 版本选择](#nodejs-版本选择)。
+- `.nvmrc` 文件可以包含精确版本（如 `18.20.8` 或 `v18.20.8`）、主版本号（如 `18`）、LTS 别名（如 `lts/*` 或 `lts/hydrogen`），或表示最新发行版的 `node`。Vite+ 会忽略 `system`、`default` 和 `iojs`，然后检查下一个来源。
+- 不需要目录切换钩子（例如 `fnm env --use-on-cd` 或 nvm 自动切换脚本）。`node`、`npm` 和 `npx` shim 每次运行时都会为当前目录选择对应版本。只要 shim 目录位于 `PATH` 中，编辑器或脚本也会获得相同的版本。
+- 当 shim 所需的版本尚未安装时，Vite+ 会自动安装它。如需提前安装某个版本，请使用 `vp env install`。
+
+### 命令对照表
+
+| 任务                    | nvm                       | fnm                               | Vite+                               |
+| ----------------------- | ------------------------- | --------------------------------- | ----------------------------------- |
+| 安装版本                | `nvm install 18`          | `fnm install 18`                  | `vp env install 18`                 |
+| 在当前 shell 中使用版本 | `nvm use 18`              | `fnm use 18`                      | `vp env use 18`                     |
+| 设置默认版本            | `nvm alias default 18`    | `fnm default 18`                  | `vp env default 18`                 |
+| 固定项目版本            | 编辑 `.nvmrc`             | 编辑 `.node-version`              | `vp env pin 18`                     |
+| 显示当前版本            | `nvm current`             | `fnm current`                     | `vp env current`                    |
+| 列出已安装版本          | `nvm ls`                  | `fnm list`                        | `vp env list node`                  |
+| 列出可用版本            | `nvm ls-remote`           | `fnm list-remote`                 | `vp env list-remote node`           |
+| 使用指定版本运行命令    | `nvm exec 18 node app.js` | `fnm exec --using=18 node app.js` | `vp env exec --node 18 node app.js` |
+| 显示 `node` 路径        | `nvm which current`       |                                   | `vp env which node`                 |
+| 卸载版本                | `nvm uninstall 16.20.2`   | `fnm uninstall 16.20.2`           | `vp env uninstall 16.20.2`          |
+
+`vp env use` 仅影响当前 shell，且需要 `vp env setup` 提供的 shell 配置。在命令提示符中请改用 `vp-use`。参见[设置](#设置)。
+
+`vp env pin` 会更新现有的 `.nvmrc` 或 `.node-version` 文件。其他固定目标请参阅[管理](#管理)。
+
+### 从 nvm 或 fnm 迁移
+
+1. 安装 Vite+ 全局 CLI。参见[全局安装 `vp`](/guide/getting-started)。
+2. 确保 Vite+ 正在管理 Node.js：
+
+   ```bash
+   vp env on node
+   ```
+
+3. 从你的 shell 配置文件（例如 `~/.zshrc`、`~/.bashrc` 或 PowerShell `$PROFILE`）中移除加载 nvm 或 fnm 的行。这些行会把 nvm 或 fnm 的 `node` 放在 `PATH` 上 Vite+ shim 的前面。例如：
+
+   ```bash
+   # nvm
+   export NVM_DIR="$HOME/.nvm"
+   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+   # fnm
+   eval "$(fnm env --use-on-cd)"
+   ```
+
+4. 打开新终端并运行 `vp env doctor node`。在其 `PATH` 部分中，`node` 一行必须显示 Vite+ shim。如果出现类似 `node ~/.nvm/... (not vp shim)` 的警告，说明另一个 `node` 仍然排在前面。
+5. 在每个项目中运行 `node -v` 以检查所选版本。
+6. 使用 [`vp install -g`](/guide/package-management/global-packages) 重新安装所需的全局命令行工具。在 nvm 或 fnm 下用 `npm install -g` 安装的包仍保留在那些工具的目录中。
+7. 检查完项目后，即可卸载 nvm 或 fnm。
+
+### 较旧的 Node.js 发行版
+
+只要 Node.js 官方为你的操作系统和 CPU 架构发布了二进制文件，`vp env` 就可以安装该发行版。
+
+你运行的包管理器及其他工具仍保留各自的 Node.js 版本要求。

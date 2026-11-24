@@ -21,7 +21,7 @@ vp dlx --silent create-vite my-app
 
 ## 兼容性
 
-- **npm：**`npm exec --yes`。
+- **npm：**`npm exec --yes`。npm 6 没有 `npm exec`，因此 Vite+ 会运行它的 `npx`。
 - **pnpm：**`pnpm dlx`。
 - **Yarn Classic：**回退：`npx --yes`。
 - **Yarn Modern：**`yarn dlx`。

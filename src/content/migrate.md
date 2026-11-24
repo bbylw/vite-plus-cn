@@ -57,6 +57,21 @@ vp migrate my-app
 
 关于 Vitest v5 升级，请阅读[兼容性设置与审查清单](/guide/vitest-v5)和[上游 Vitest 迁移指南](https://vitest.dev/guide/migration/)。预检会在更新依赖之前检查你原始的 runner 版本与 Node 运行时。请保留原始锁文件，并在重试之前解决阻塞性问题。
 
+### 在模板与示例中保留上游导入
+
+如果你的根目录 `vite.config.ts` 启用了 `vite-plus/prefer-vite-plus-imports`，可以在 `lint.overrides` 中添加以下条目，以在模板和示例中保留 `vite` 和 `vitest` 导入：
+
+```json
+{
+  "files": ["templates/**", "examples/**"],
+  "rules": { "vite-plus/prefer-vite-plus-imports": "off" }
+}
+```
+
+`vp migrate`、`vp lint --fix` 和 `vp check --fix` 在重写 Vite 和 Vitest 导入时都会遵守此 override。Oxlint 会相对于根配置目录匹配文件模式。后续匹配的 override 可以重新启用该规则。
+
+迁移会保留提供被保留的 `vitest`、`@vitest/browser` 和 `@vitest/browser-preview` 导入所需的依赖。如果工作区外的模板从根项目导入 `vitest`，根项目会保留其依赖。当迁移移除 `tsdown` 开发依赖时，仍会将 `tsdown` 导入重写为 `vite-plus/pack`。
+
 ## 推荐工作流
 
 在运行迁移之前：
@@ -91,9 +106,9 @@ vp migrate my-app
 
 使用目标 Vite+ 1.0 版本（或其预览构建）的 CLI，并使用兼容性指南中受支持的 Node.js 运行时。全局安装是可选的：
 - 已全局安装 vp 时，按 https://viteplus.dev/guide/upgrade 选择目标版本，并检查 `vp toolchain --global`。运行 `vp help` 与 `vp help migrate`，然后在工作区根目录运行 `vp migrate --no-interactive`。
-- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.7.0 版本，使用 `pnpm dlx --package=vite-plus@1.7.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.7.0 vp migrate --no-interactive`。先运行带 `help migrate` 的同一命令（而不是 `migrate --no-interactive`）以阅读其帮助信息。这些命令会在不替换旧项目依赖的前提下拉取目标 CLI。
+- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.8.0 版本，使用 `pnpm dlx --package=vite-plus@1.8.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.8.0 vp migrate --no-interactive`。先运行带 `help migrate` 的同一命令（而不是 `migrate --no-interactive`）以阅读其帮助信息。这些命令会在不替换旧项目依赖的前提下拉取目标 CLI。
 
-把 1.7.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。
+把 1.8.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。
 
 不要使用旧项目的 node_modules/.bin/vp 运行迁移。monorepo 请从工作区根目录迁移，以保证共享清单、catalog、overrides 与锁文件保持一致。
 
@@ -132,21 +147,21 @@ Vite+ 1.0 包含 Vitest 5 中的破坏性变更。请同时阅读 [Vite+ 兼容�
 
 ### 不安装全局 CLI
 
-使用满足 `^22.18.0 || ^24.11.0 || >=26.0.0` 的现有 Node.js 运行时。通过包管理器运行目标迁移工具，而不要先把它加入项目。对于 `1.7.0` 版本：
+使用满足 `^22.18.0 || ^24.11.0 || >=26.0.0` 的现有 Node.js 运行时。通过包管理器运行目标迁移工具，而不要先把它加入项目。对于 `1.8.0` 版本：
 
 **pnpm**
 
 ```bash
-pnpm dlx --package=vite-plus@1.7.0 vp migrate --no-interactive
+pnpm dlx --package=vite-plus@1.8.0 vp migrate --no-interactive
 ```
 
 **npm**
 
 ```bash
-npx --package=vite-plus@1.7.0 vp migrate --no-interactive
+npx --package=vite-plus@1.8.0 vp migrate --no-interactive
 ```
 
-把 `1.7.0` 替换为目标版本。如需预览版，使用其 PR 中的版本，并在 `vp` 命令之前向 `pnpm` 或 `npx` 传入 `--registry=https://registry-bridge.viteplus.dev`。请始终在 `--package` 中写明显式版本，以确保运行的是目标迁移工具，而不是旧的本地 CLI。
+把 `1.8.0` 替换为目标版本。如需预览版，使用其 PR 中的版本，并在 `vp` 命令之前向 `pnpm` 或 `npx` 传入 `--registry=https://registry-bridge.viteplus.dev`。请始终在 `--package` 中写明显式版本，以确保运行的是目标迁移工具，而不是旧的本地 CLI。
 
 迁移完成后，使用更新后的本地 CLI 完成依赖安装并验证：
 
@@ -197,9 +212,9 @@ npm exec -- vp build
 使用目标 Vite+ 1.0 版本（或其预览构建）的 CLI。全局安装是可选的。使用 Vite+ 兼容性指南中受支持的 Node.js 运行时。
 
 - 已全局安装 vp 时，按 https://viteplus.dev/guide/upgrade 升级它，并检查 `vp toolchain --global`。运行 `vp help migrate`，然后在工作区根目录运行 `vp migrate --no-interactive`。
-- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.7.0 版本，运行 `pnpm dlx --package=vite-plus@1.7.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.7.0 vp migrate --no-interactive`。先阅读其帮助输出，这些命令不会先替换项目依赖。
+- 未安装全局 CLI 时，在工作区根目录通过包管理器运行目标 CLI。对于 1.8.0 版本，运行 `pnpm dlx --package=vite-plus@1.8.0 vp migrate --no-interactive` 或 `npx --package=vite-plus@1.8.0 vp migrate --no-interactive`。先阅读其帮助输出，这些命令不会先替换项目依赖。
 
-把 1.7.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。不要使用旧项目的 node_modules/.bin/vp 运行迁移。保留现有的项目设置；除非我要求，否则不要使用 --full。
+把 1.8.0 替换为预期的发布版本。如需预览版，使用其 PR 中的版本，并在 vp 命令之前向 pnpm 或 npx 传入 --registry=https://registry-bridge.viteplus.dev。不要使用旧项目的 node_modules/.bin/vp 运行迁移。保留现有的项目设置；除非我要求，否则不要使用 --full。
 
 解决 BLOCK 项并重新运行迁移。即使迁移成功退出，也要按文档链接审查每个 REVIEW 项。保留测试意图，并在首次验证运行前保留生成的 Vitest v4 与 tsdown <0.23 兼容性设置及注释。
 
@@ -221,7 +236,7 @@ npm exec -- vp build
 
 ### Vitest
 
-Vitest 会通过 `vp migrate` 自动迁移。`vite-plus` 在 `vite-plus/test*` 下重新导出上游的 `vitest@5.1.0`，因此对于 node 模式的测试，只安装一个 `vite-plus` 即可——你不再需要直接安装 `vitest`。
+Vitest 会通过 `vp migrate` 自动迁移。`vite-plus` 在 `vite-plus/test*` 下重新导出上游的 `vitest@5.1.1`，因此对于 node 模式的测试，只安装一个 `vite-plus` 即可——你不再需要直接安装 `vitest`。
 
 对于浏览器模式，你可以使用 `vite-plus` 内置的基础浏览器运行时（`@vitest/browser`）与 Preview provider（`@vitest/browser-preview`）。要使用 Playwright 或 WebDriverIO，你还需要可选的 provider（`@vitest/browser-playwright` 或 `@vitest/browser-webdriverio`）及其框架 peer（`playwright` 或 `webdriverio`）。
 

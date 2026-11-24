@@ -329,7 +329,7 @@ tasks: {
 
 Vite Task 会自动归档成功任务运行所生成的文件，并在缓存命中时恢复它们。
 
-如果省略 `output`，Vite Task 会使用自动写入追踪来选择这些文件。当你需要覆盖要恢复的文件时，请添加显式的 `output` 条目。
+如果省略 `output`，Vite Task 会使用自动写入追踪来选择这些文件。像 `dist/**` 这样的输出 glob 会捕获任务结束时存在的匹配文件。对于[跳过未变更文件的生成器](/guide/automatic-data-tracking#跳过未变更文件的生成器)，请使用 glob。
 
 ```ts [vite.config.ts]
 tasks: {

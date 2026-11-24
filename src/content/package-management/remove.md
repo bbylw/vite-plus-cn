@@ -10,16 +10,16 @@ vp remove -g --dry-run typescript
 
 ## 选项
 
-| 选项                   | 描述                               | 备注                                                                        |
-| ---------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
-| `-D, --save-dev`       | 从 devDependencies 中移除。        |                                                                             |
-| `-O, --save-optional`  | 从 optionalDependencies 中移除。   |                                                                             |
-| `-P, --save-prod`      | 从 dependencies 中移除。           |                                                                             |
-| `--filter <pattern>`   | 按模式选择工作区。                 | 可重复指定。                                                                |
-| `-w, --workspace-root` | 从工作区根目录移除。               |                                                                             |
-| `-r, --recursive`      | 从所有工作区包中递归移除。         |                                                                             |
-| `-g, --global`         | 移除全局包。                       | 需要全局 CLI。使用[全局包存储](/guide/package-management/global-packages)。 |
-| `--dry-run`            | 预览将被移除的内容，而不实际移除。 | 需要 --global。                                                             |
+| 选项                   | 描述                                      | 备注                                                                        |
+| ---------------------- | ----------------------------------------- | --------------------------------------------------------------------------- |
+| `-D, --save-dev`       | 在 pnpm 上，指定 `devDependencies`。      |                                                                             |
+| `-O, --save-optional`  | 在 pnpm 上，指定 `optionalDependencies`。 |                                                                             |
+| `-P, --save-prod`      | 在 pnpm 上，指定 `dependencies`。         |                                                                             |
+| `--filter <pattern>`   | 按模式选择工作区。                        | 可重复指定。                                                                |
+| `-w, --workspace-root` | 从工作区根目录移除。                      |                                                                             |
+| `-r, --recursive`      | 从所有工作区包中递归移除。                |                                                                             |
+| `-g, --global`         | 移除全局包。                              | 需要全局 CLI。使用[全局包存储](/guide/package-management/global-packages)。 |
+| `--dry-run`            | 预览将被移除的内容，而不实际移除。        | 需要 --global。                                                             |
 
 ## 兼容性
 
@@ -31,16 +31,16 @@ vp remove -g --dry-run typescript
 - **Yarn Modern：**`yarn remove`。
 - **Bun：**`bun remove`。
 
-| 选项                   | npm               | pnpm | Yarn Classic | Yarn Modern | Bun            | 备注                     |
-| ---------------------- | ----------------- | ---- | ------------ | ----------- | -------------- | ------------------------ |
-| `-D, --save-dev`       | 是                | 是   | 否           | 否          | 否             |                          |
-| `-O, --save-optional`  | 是                | 是   | 否           | 否          | 否             |                          |
-| `-P, --save-prod`      | 是                | 是   | 否           | 否          | 否             |                          |
-| `--filter <pattern>`   | 7.14.0 或更高版本 | 是   | 单个 filter  | 是          | 1.4 或更高版本 |                          |
-| `-w, --workspace-root` | 8.1.0 或更高版本  | 是   | 否           | 否          | 否             |                          |
-| `-r, --recursive`      | 8.1.0 或更高版本  | 是   | 否           | 是          | 否             | npm 会包含工作区根目录。 |
-| `-g, --global`         | 是                | 是   | 是           | 是          | 是             |                          |
-| `--dry-run`            | 是                | 是   | 是           | 是          | 是             |                          |
+| 选项                   | npm               | pnpm | Yarn Classic | Yarn Modern | Bun            | 备注                               |
+| ---------------------- | ----------------- | ---- | ------------ | ----------- | -------------- | ---------------------------------- |
+| `-D, --save-dev`       | 是                | 是   | 否           | 否          | 否             | npm 会同时包含 `dependencies`。    |
+| `-O, --save-optional`  | 是                | 是   | 否           | 否          | 否             | npm 会同时包含 `dependencies`。    |
+| `-P, --save-prod`      | 是                | 是   | 否           | 否          | 否             | npm 会同时包含 `devDependencies`。 |
+| `--filter <pattern>`   | 7.14.0 或更高版本 | 是   | 单个 filter  | 是          | 1.4 或更高版本 |                                    |
+| `-w, --workspace-root` | 8.1.0 或更高版本  | 是   | 否           | 否          | 否             |                                    |
+| `-r, --recursive`      | 8.1.0 或更高版本  | 是   | 否           | 是          | 否             | npm 会包含工作区根目录。           |
+| `-g, --global`         | 是                | 是   | 是           | 是          | 是             |                                    |
+| `--dry-run`            | 是                | 是   | 是           | 是          | 是             |                                    |
 
 ## 原生选项
 
